@@ -63,7 +63,6 @@ export async function updatePeternakAsAdmin(id: string, formData: FormData) {
       alamat_desa: parsed.data.alamat_desa,
       alamat_kec: parsed.data.alamat_kec,
       alamat_detail: parsed.data.alamat_detail,
-      updated_at: new Date().toISOString()
     })
     .eq('id', id)
 
