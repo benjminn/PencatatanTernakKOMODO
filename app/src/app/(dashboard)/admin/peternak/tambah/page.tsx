@@ -14,10 +14,10 @@ export default async function TambahPeternakPage() {
 
   const { data: me } = await supabase
     .from('pemilik').select('role').eq('id', user.id).single()
-  if (!me || me.role !== 'admin') redirect('/dashboard')
+  if (!me || (me.role !== 'admin' && me.role !== 'superadmin')) redirect('/dashboard')
 
   return (
-    <div className="max-w-xl mx-auto">
+    <div className="max-w-2xl pb-8">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/admin/peternak" className="btn btn-ghost btn-sm">
           <ArrowLeft size={16} />

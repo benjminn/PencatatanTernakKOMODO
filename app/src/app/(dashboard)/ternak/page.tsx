@@ -5,6 +5,7 @@ import TernakFilterBar from '@/components/ternak/TernakFilterBar'
 import Link from 'next/link'
 import { PlusCircle } from 'lucide-react'
 import type { Metadata } from 'next'
+import type { StatusTernak } from '@/types/database.types'
 
 export const metadata: Metadata = { title: 'Daftar Ternak' }
 
@@ -40,7 +41,7 @@ export default async function TernakPage({
 
   // Filters
   if (params.search) {
-    query = query.or(`no_eartag.ilike.%${params.search}%,nik.ilike.%${params.search}%,nama_lengkap.ilike.%${params.search}%`)
+    query = query.or(`identitas_penanda.ilike.%${params.search}%,nik.ilike.%${params.search}%,nama_lengkap.ilike.%${params.search}%`)
   }
   if (params.desa) {
     query = query.eq('alamat_desa', params.desa)
@@ -48,10 +49,8 @@ export default async function TernakPage({
   if (params.jenis) {
     query = query.eq('nama_jenis', params.jenis)
   }
-  if (params.status === 'hidup') {
-    query = query.eq('status_hidup', true)
-  } else if (params.status === 'mati') {
-    query = query.eq('status_hidup', false)
+  if (params.status && ['hidup', 'mati', 'dijual'].includes(params.status)) {
+    query = query.eq('status', params.status as StatusTernak)
   }
 
   const { data: ternakList } = await query.order('created_at', { ascending: false })
@@ -63,7 +62,7 @@ export default async function TernakPage({
     .eq('is_active', true)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full pb-8">
       <div className="page-header">
         <div>
           <h1 className="page-title">
@@ -84,7 +83,7 @@ export default async function TernakPage({
       {/* Filter Bar */}
       <TernakFilterBar
         isAdmin={isAdmin}
-        jenisList={jenisList?.map((j) => j.nama_jenis) ?? []}
+        jenisList={jenisList ?? []}
         currentParams={params}
       />
 

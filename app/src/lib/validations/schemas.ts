@@ -42,15 +42,25 @@ export const registerSchema = z
 // ──────────────────────────────────────────────
 
 export const ternakSchema = z.object({
-  no_eartag: z
-    .string()
-    .min(1, 'No. Eartag wajib diisi')
-    .max(50, 'No. Eartag maksimal 50 karakter')
-    .regex(/^[a-zA-Z0-9\-_]+$/, 'No. Eartag hanya boleh huruf, angka, strip, dan underscore'),
+  jenis_penanda: z.string().min(1, 'Pilih jenis penanda'),
+  identitas_penanda: z.string().max(100, 'Identitas penanda maksimal 100 karakter').optional().nullable(),
   id_jenis: z.coerce.number({ error: 'Pilih jenis hewan' }).int().positive('Pilih jenis hewan'),
-  jenis_kelamin: z.string().min(1, 'Pilih jenis kelamin'),
-  umur: z.string().optional(),
-  // berat_badan: string dari form → number atau null
+  fase: z.enum(['Indukan', 'Pejantan', 'Anakan']).optional().nullable(),
+  jenis_kelamin: z.string().optional().nullable(),
+  umur_tahun: z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return 0
+      return parseInt(String(val)) || 0
+    },
+    z.number().min(0).max(30)
+  ),
+  umur_bulan: z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return 0
+      return parseInt(String(val)) || 0
+    },
+    z.number().min(0).max(11)
+  ),
   berat_badan: z.preprocess(
     (val) => {
       if (val === '' || val === null || val === undefined) return null
@@ -59,11 +69,28 @@ export const ternakSchema = z.object({
     },
     z.number().positive('Berat badan harus lebih dari 0').nullable().optional()
   ),
-  status_hidup: z.boolean().default(true),
+  status: z.enum(['hidup', 'mati', 'dijual']).default('hidup'),
 })
 
 export const updateTernakSchema = z.object({
-  umur: z.string().optional(),
+  jenis_penanda: z.string().min(1, 'Pilih jenis penanda'),
+  identitas_penanda: z.string().max(100, 'Identitas penanda maksimal 100 karakter').optional().nullable(),
+  fase: z.enum(['Indukan', 'Pejantan', 'Anakan']).optional().nullable(),
+  jenis_kelamin: z.string().optional().nullable(),
+  umur_tahun: z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return 0
+      return parseInt(String(val)) || 0
+    },
+    z.number().min(0).max(30)
+  ),
+  umur_bulan: z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return 0
+      return parseInt(String(val)) || 0
+    },
+    z.number().min(0).max(11)
+  ),
   berat_badan: z.preprocess(
     (val) => {
       if (val === '' || val === null || val === undefined) return null
@@ -72,7 +99,18 @@ export const updateTernakSchema = z.object({
     },
     z.number().positive('Berat badan harus lebih dari 0').nullable().optional()
   ),
-  status_hidup: z.boolean(),
+  status: z.enum(['hidup', 'mati', 'dijual']),
+})
+
+// ──────────────────────────────────────────────
+// Profile Schema
+// ──────────────────────────────────────────────
+
+export const profileSchema = z.object({
+  nama_lengkap: z.string().min(2, 'Nama minimal 2 karakter').max(255),
+  alamat_kec: z.string().min(1, 'Pilih kecamatan'),
+  alamat_desa: z.string().min(1, 'Pilih desa'),
+  alamat_detail: z.string().min(5, 'Isi detail alamat (RT/RW/Kampung)'),
 })
 
 // ──────────────────────────────────────────────
@@ -82,8 +120,49 @@ export const updateTernakSchema = z.object({
 export const jenisTernakSchema = z.object({
   nama_jenis: z.string().min(1, 'Nama jenis wajib diisi').max(100),
   opsi_kelamin: z.array(z.string()).min(1, 'Pilih minimal 1 opsi kelamin'),
-  kategori: z.enum(['Mamalia', 'Unggas']),
+  kategori: z.enum(['Mamalia']),
 })
+
+// ──────────────────────────────────────────────
+// Helper: gabung umur tahun + bulan jadi string
+// ──────────────────────────────────────────────
+export function formatUmur(tahun: number, bulan: number): string | null {
+  if (tahun === 0 && bulan === 0) return null
+  const parts: string[] = []
+  if (tahun > 0) parts.push(`${tahun} tahun`)
+  if (bulan > 0) parts.push(`${bulan} bulan`)
+  return parts.join(' ')
+}
+
+export function parseUmur(umur: string | null): { tahun: number; bulan: number } {
+  if (!umur) return { tahun: 0, bulan: 0 }
+  const tahunMatch = umur.match(/(\d+)\s*tahun/)
+  const bulanMatch = umur.match(/(\d+)\s*bulan/)
+  return {
+    tahun: tahunMatch ? parseInt(tahunMatch[1]) : 0,
+    bulan: bulanMatch ? parseInt(bulanMatch[1]) : 0,
+  }
+}
+
+export function parseTanggalLahirToUmur(tanggal_lahir: string | null): { tahun: number; bulan: number } {
+  if (!tanggal_lahir) return { tahun: 0, bulan: 0 }
+  
+  const birthDate = new Date(tanggal_lahir)
+  const today = new Date()
+  
+  let years = today.getFullYear() - birthDate.getFullYear()
+  let months = today.getMonth() - birthDate.getMonth()
+  
+  if (months < 0) {
+    years--
+    months += 12
+  }
+  
+  return {
+    tahun: Math.max(0, years),
+    bulan: Math.max(0, months)
+  }
+}
 
 // ──────────────────────────────────────────────
 // Type Exports
@@ -94,3 +173,4 @@ export type RegisterInput = z.infer<typeof registerSchema>
 export type TernakInput = z.infer<typeof ternakSchema>
 export type UpdateTernakInput = z.infer<typeof updateTernakSchema>
 export type JenisTernakInput = z.infer<typeof jenisTernakSchema>
+export type ProfileInput = z.infer<typeof profileSchema>

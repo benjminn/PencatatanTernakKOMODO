@@ -19,7 +19,7 @@ export default async function TambahTernakPage() {
     .order('nama_jenis')
 
   return (
-    <div className="max-w-xl mx-auto">
+    <div className="max-w-4xl pb-8">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/ternak" className="btn btn-ghost btn-sm">
           <ArrowLeft size={16} />

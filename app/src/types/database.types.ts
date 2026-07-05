@@ -6,6 +6,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type StatusTernak = 'hidup' | 'mati' | 'dijual'
+
 export interface Database {
   public: {
     Tables: {
@@ -34,6 +36,7 @@ export interface Database {
           is_active?: boolean
           created_at?: string
         }
+        Relationships: []
       }
       pemilik: {
         Row: {
@@ -43,7 +46,7 @@ export interface Database {
           alamat_kec: string
           alamat_desa: string
           alamat_detail: string
-          role: 'peternak' | 'admin'
+          role: 'peternak' | 'admin' | 'superadmin'
           created_at: string
         }
         Insert: {
@@ -53,7 +56,7 @@ export interface Database {
           alamat_kec: string
           alamat_desa: string
           alamat_detail: string
-          role?: 'peternak' | 'admin'
+          role?: 'peternak' | 'admin' | 'superadmin'
           created_at?: string
         }
         Update: {
@@ -63,64 +66,96 @@ export interface Database {
           alamat_kec?: string
           alamat_desa?: string
           alamat_detail?: string
-          role?: 'peternak' | 'admin'
+          role?: 'peternak' | 'admin' | 'superadmin'
           created_at?: string
         }
+        Relationships: []
       }
       ternak: {
         Row: {
-          no_eartag: string
+          id: string
+          jenis_penanda: string
+          identitas_penanda: string | null
           id_pemilik: string
           id_jenis: number
-          jenis_kelamin: string
-          umur: string | null
+          fase: string | null
+          jenis_kelamin: string | null
+          tanggal_lahir: string | null
           berat_badan: number | null
-          status_hidup: boolean
+          status: StatusTernak
           updated_at: string
           created_at: string
         }
         Insert: {
-          no_eartag: string
+          id?: string
+          jenis_penanda: string
+          identitas_penanda?: string | null
           id_pemilik: string
           id_jenis: number
-          jenis_kelamin: string
-          umur?: string | null
+          fase?: string | null
+          jenis_kelamin?: string | null
+          tanggal_lahir?: string | null
           berat_badan?: number | null
-          status_hidup?: boolean
+          status?: StatusTernak
           updated_at?: string
           created_at?: string
         }
         Update: {
-          no_eartag?: string
+          id?: string
+          jenis_penanda?: string
+          identitas_penanda?: string | null
           id_pemilik?: string
           id_jenis?: number
-          jenis_kelamin?: string
-          umur?: string | null
+          fase?: string | null
+          jenis_kelamin?: string | null
+          tanggal_lahir?: string | null
           berat_badan?: number | null
-          status_hidup?: boolean
+          status?: StatusTernak
           updated_at?: string
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "ternak_id_jenis_fkey"
+            columns: ["id_jenis"]
+            isOneToOne: false
+            referencedRelation: "master_jenis_ternak"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ternak_id_pemilik_fkey"
+            columns: ["id_pemilik"]
+            isOneToOne: false
+            referencedRelation: "pemilik"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
       v_ternak_lengkap: {
         Row: {
-          no_eartag: string
-          jenis_kelamin: string
+          id: string
+          jenis_penanda: string
+          identitas_penanda: string | null
+          fase: string | null
+          jenis_kelamin: string | null
+          tanggal_lahir: string | null
           umur: string | null
           berat_badan: number | null
-          status_hidup: boolean
+          status: StatusTernak
           updated_at: string
           created_at: string
           nama_jenis: string
           kategori: string
+          id_pemilik: string
           nik: string
           nama_lengkap: string
           alamat_desa: string
           alamat_kec: string
           alamat_detail: string
         }
+        Relationships: []
       }
       v_statistik_desa: {
         Row: {
@@ -129,11 +164,13 @@ export interface Database {
           kategori: string
           jumlah_hidup: number
           jumlah_mati: number
+          jumlah_dijual: number
           jumlah_jantan: number
           jumlah_betina: number
           jumlah_campuran: number
           total: number
         }
+        Relationships: []
       }
     }
     Functions: {
@@ -141,6 +178,12 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }

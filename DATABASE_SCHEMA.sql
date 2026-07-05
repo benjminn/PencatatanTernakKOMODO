@@ -39,15 +39,18 @@ CREATE TABLE IF NOT EXISTS pemilik (
 
 -- Data ternak
 CREATE TABLE IF NOT EXISTS ternak (
-  no_eartag     VARCHAR(50) PRIMARY KEY,
-  id_pemilik    UUID NOT NULL REFERENCES pemilik(id) ON DELETE CASCADE,
-  id_jenis      INTEGER NOT NULL REFERENCES master_jenis_ternak(id),
-  jenis_kelamin VARCHAR(50) NOT NULL,
-  umur          VARCHAR(100),       -- Nullable/Opsional
-  berat_badan   DECIMAL(10, 2),     -- Nullable/Opsional, satuan kg
-  status_hidup  BOOLEAN NOT NULL DEFAULT TRUE,
-  updated_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_pemilik        UUID NOT NULL REFERENCES pemilik(id) ON DELETE CASCADE,
+  id_jenis          INTEGER NOT NULL REFERENCES master_jenis_ternak(id),
+  jenis_penanda     VARCHAR(50) NOT NULL DEFAULT 'Eartag',
+  identitas_penanda VARCHAR(100),
+  fase              VARCHAR(20) CHECK (fase IN ('Indukan', 'Pejantan', 'Anakan')),
+  jenis_kelamin     VARCHAR(50),
+  tanggal_lahir     DATE,
+  berat_badan       DECIMAL(10, 2),
+  status            VARCHAR(20) NOT NULL DEFAULT 'hidup' CHECK (status IN ('hidup', 'mati', 'dijual')),
+  updated_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ============================================================
@@ -187,17 +190,17 @@ CREATE POLICY "ternak_delete" ON ternak
 -- 5. SEED DATA — Master Jenis Ternak
 -- ============================================================
 
-INSERT INTO master_jenis_ternak (nama_jenis, opsi_kelamin, kategori) VALUES
-  ('Kerbau',        '{"Jantan","Betina"}',  'Mamalia'),
-  ('Sapi',          '{"Jantan","Betina"}',  'Mamalia'),
-  ('Kuda',          '{"Jantan","Betina"}',  'Mamalia'),
-  ('Kambing',       '{"Jantan","Betina"}',  'Mamalia'),
-  ('Babi',          '{"Jantan","Betina"}',  'Mamalia'),
-  ('Ayam Kampung',  '{"Campuran"}',         'Unggas'),
-  ('Ayam Petelur',  '{"Campuran"}',         'Unggas'),
-  ('Ayam Broiler',  '{"Campuran"}',         'Unggas'),
-  ('Bebek',         '{"Jantan","Betina"}',  'Unggas'),
-  ('Itik',          '{"Jantan","Betina"}',  'Unggas')
+INSERT INTO master_jenis_ternak (nama_jenis, opsi_kelamin, kategori, is_active) VALUES
+  ('Kerbau',        '{"Jantan","Betina"}',  'Mamalia', TRUE),
+  ('Sapi',          '{"Jantan","Betina"}',  'Mamalia', TRUE),
+  ('Kuda',          '{"Jantan","Betina"}',  'Mamalia', TRUE),
+  ('Kambing',       '{"Jantan","Betina"}',  'Mamalia', TRUE),
+  ('Babi',          '{"Jantan","Betina"}',  'Mamalia', TRUE),
+  ('Ayam Kampung',  '{"Campuran"}',         'Unggas', FALSE),
+  ('Ayam Petelur',  '{"Campuran"}',         'Unggas', FALSE),
+  ('Ayam Broiler',  '{"Campuran"}',         'Unggas', FALSE),
+  ('Bebek',         '{"Jantan","Betina"}',  'Unggas', FALSE),
+  ('Itik',          '{"Jantan","Betina"}',  'Unggas', FALSE)
 ON CONFLICT DO NOTHING;
 
 -- ============================================================
@@ -207,15 +210,20 @@ ON CONFLICT DO NOTHING;
 -- View: ternak dengan info pemilik dan jenis
 CREATE OR REPLACE VIEW v_ternak_lengkap AS
 SELECT
-  t.no_eartag,
+  t.id,
+  t.jenis_penanda,
+  t.identitas_penanda,
+  t.fase,
   t.jenis_kelamin,
-  t.umur,
+  t.tanggal_lahir,
+  hitung_umur_string(t.tanggal_lahir) AS umur,
   t.berat_badan,
-  t.status_hidup,
+  t.status,
   t.updated_at,
   t.created_at,
   j.nama_jenis,
   j.kategori,
+  p.id AS id_pemilik,
   p.nik,
   p.nama_lengkap,
   p.alamat_desa,
@@ -231,8 +239,9 @@ SELECT
   p.alamat_desa,
   j.nama_jenis,
   j.kategori,
-  COUNT(*) FILTER (WHERE t.status_hidup = TRUE) AS jumlah_hidup,
-  COUNT(*) FILTER (WHERE t.status_hidup = FALSE) AS jumlah_mati,
+  COUNT(*) FILTER (WHERE t.status = 'hidup') AS jumlah_hidup,
+  COUNT(*) FILTER (WHERE t.status = 'mati') AS jumlah_mati,
+  COUNT(*) FILTER (WHERE t.status = 'dijual') AS jumlah_dijual,
   COUNT(*) FILTER (WHERE t.jenis_kelamin = 'Jantan') AS jumlah_jantan,
   COUNT(*) FILTER (WHERE t.jenis_kelamin = 'Betina') AS jumlah_betina,
   COUNT(*) FILTER (WHERE t.jenis_kelamin = 'Campuran') AS jumlah_campuran,

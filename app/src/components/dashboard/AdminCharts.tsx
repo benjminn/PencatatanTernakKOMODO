@@ -1,39 +1,19 @@
 'use client'
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
 interface AdminChartsProps {
   chartData: { name: string; value: number }[]
 }
 
-const COLORS = [
-  '#2d8a64', '#e07b39', '#4ade80', '#f87171', '#60a5fa',
-  '#facc15', '#a78bfa', '#34d399', '#fb923c', '#38bdf8',
-]
+const COLORS = ['#166534', '#ea580c', '#0369a1', '#b45309', '#7c3aed', '#dc2626', '#0891b2', '#15803d']
 
 const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+  if (active && payload?.length) {
     return (
-      <div
-        className="px-3 py-2 rounded-lg text-sm"
-        style={{
-          background: 'var(--color-bg-elevated)',
-          border: '1px solid var(--color-bg-border)',
-          color: 'var(--color-text-primary)',
-        }}
-      >
-        <p className="font-semibold">{label}</p>
-        <p style={{ color: 'var(--color-primary-400)' }}>
-          {payload[0].value} ekor
-        </p>
+      <div className="bg-white px-3 py-2 rounded-lg shadow-lg border border-gray-200 text-sm">
+        <p className="font-semibold text-gray-900">{label}</p>
+        <p className="text-green-700">{payload[0].value} ekor</p>
       </div>
     )
   }
@@ -44,8 +24,8 @@ export default function AdminCharts({ chartData }: AdminChartsProps) {
   if (chartData.length === 0) {
     return (
       <div className="card">
-        <p className="text-sm text-center py-8" style={{ color: 'var(--color-text-muted)' }}>
-          Belum ada data untuk ditampilkan dalam grafik
+        <p className="text-sm text-center py-8 text-gray-400">
+          Belum ada data untuk grafik
         </p>
       </div>
     )
@@ -53,27 +33,17 @@ export default function AdminCharts({ chartData }: AdminChartsProps) {
 
   return (
     <div className="card">
-      <h2 className="font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-        Populasi per Jenis Hewan (Status Hidup)
+      <h2 className="font-semibold text-sm text-gray-900 mb-4">
+        Populasi per Jenis Hewan (Hidup)
       </h2>
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width="100%" height={240}>
         <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-          <XAxis
-            dataKey="name"
-            tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
-            axisLine={false}
-            tickLine={false}
-            allowDecimals={false}
-          />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-          <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-            {chartData.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            {chartData.map((_, i) => (
+              <Cell key={`c-${i}`} fill={COLORS[i % COLORS.length]} />
             ))}
           </Bar>
         </BarChart>

@@ -154,7 +154,7 @@ export async function adminRegisterPeternak(formData: FormData) {
   const { data: currentPemilik } = await supabase
     .from('pemilik').select('role').eq('id', user.id).single()
 
-  if (!currentPemilik || currentPemilik.role !== 'admin') {
+  if (!currentPemilik || (currentPemilik.role !== 'admin' && currentPemilik.role !== 'superadmin')) {
     return { error: 'Akses ditolak' }
   }
 

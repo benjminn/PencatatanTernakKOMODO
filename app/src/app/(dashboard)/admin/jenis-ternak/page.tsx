@@ -12,7 +12,7 @@ export default async function JenisTernakPage() {
 
   const { data: me } = await supabase
     .from('pemilik').select('role').eq('id', user.id).single()
-  if (!me || me.role !== 'admin') redirect('/dashboard')
+  if (!me || (me.role !== 'admin' && me.role !== 'superadmin')) redirect('/dashboard')
 
   const { data: jenisList } = await supabase
     .from('master_jenis_ternak')
@@ -20,7 +20,7 @@ export default async function JenisTernakPage() {
     .order('nama_jenis')
 
   return (
-    <div className="space-y-4 max-w-3xl">
+    <div className="space-y-4 max-w-full pb-8">
       <div className="page-header">
         <div>
           <h1 className="page-title">Master Jenis Ternak</h1>

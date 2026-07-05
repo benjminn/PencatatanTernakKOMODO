@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { ternakSchema, updateTernakSchema, getFirstZodError } from '@/lib/validations/schemas'
+import { ternakSchema, updateTernakSchema, getFirstZodError, formatUmur } from '@/lib/validations/schemas'
 
 // ──────────────────────────────────────────────
 // TAMBAH TERNAK
@@ -14,12 +14,15 @@ export async function tambahTernak(formData: FormData) {
   if (!user) return { error: 'Tidak terautentikasi' }
 
   const rawData = {
-    no_eartag: formData.get('no_eartag') as string,
-    id_jenis: formData.get('id_jenis'),        // z.coerce.number handles conversion
-    jenis_kelamin: formData.get('jenis_kelamin') as string,
-    umur: formData.get('umur') as string || undefined,
-    berat_badan: formData.get('berat_badan'),  // z.preprocess handles conversion
-    status_hidup: true,
+    jenis_penanda: formData.get('jenis_penanda') as string,
+    identitas_penanda: formData.get('identitas_penanda') as string || null,
+    id_jenis: formData.get('id_jenis'),
+    fase: formData.get('fase') as string || null,
+    jenis_kelamin: formData.get('jenis_kelamin') as string || null,
+    umur_tahun: formData.get('umur_tahun'),
+    umur_bulan: formData.get('umur_bulan'),
+    berat_badan: formData.get('berat_badan'),
+    status: 'hidup',
   }
 
   const parsed = ternakSchema.safeParse(rawData)
@@ -27,25 +30,23 @@ export async function tambahTernak(formData: FormData) {
     return { error: getFirstZodError(parsed.error) }
   }
 
-  // Check eartag uniqueness
-  const { data: existing } = await supabase
-    .from('ternak')
-    .select('no_eartag')
-    .eq('no_eartag', parsed.data.no_eartag)
-    .maybeSingle()
-
-  if (existing) {
-    return { error: `No. Eartag "${parsed.data.no_eartag}" sudah digunakan. Gunakan nomor yang berbeda.` }
-  }
+  const today = new Date()
+  const tanggal_lahir = new Date(
+    today.getFullYear() - parsed.data.umur_tahun,
+    today.getMonth() - parsed.data.umur_bulan,
+    today.getDate()
+  ).toISOString().split('T')[0]
 
   const { error } = await supabase.from('ternak').insert({
-    no_eartag: parsed.data.no_eartag,
+    jenis_penanda: parsed.data.jenis_penanda,
+    identitas_penanda: parsed.data.identitas_penanda,
     id_pemilik: user.id,
     id_jenis: parsed.data.id_jenis,
+    fase: parsed.data.fase,
     jenis_kelamin: parsed.data.jenis_kelamin,
-    umur: parsed.data.umur || null,
+    tanggal_lahir: tanggal_lahir,
     berat_badan: parsed.data.berat_badan ?? null,
-    status_hidup: true,
+    status: 'hidup',
   })
 
   if (error) {
@@ -54,22 +55,28 @@ export async function tambahTernak(formData: FormData) {
   }
 
   revalidatePath('/ternak')
+  revalidatePath('/dashboard')
   return { success: true }
 }
 
 // ──────────────────────────────────────────────
 // UPDATE TERNAK
 // ──────────────────────────────────────────────
-export async function updateTernak(eartag: string, formData: FormData) {
+export async function updateTernak(id: string, formData: FormData) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Tidak terautentikasi' }
 
   const rawData = {
-    umur: formData.get('umur') as string || undefined,
+    jenis_penanda: formData.get('jenis_penanda') as string,
+    identitas_penanda: formData.get('identitas_penanda') as string || null,
+    fase: formData.get('fase') as string || null,
+    jenis_kelamin: formData.get('jenis_kelamin') as string || null,
+    umur_tahun: formData.get('umur_tahun'),
+    umur_bulan: formData.get('umur_bulan'),
     berat_badan: formData.get('berat_badan') as string || undefined,
-    status_hidup: formData.get('status_hidup') === 'true',
+    status: formData.get('status') as string,
   }
 
   const parsed = updateTernakSchema.safeParse(rawData)
@@ -77,28 +84,40 @@ export async function updateTernak(eartag: string, formData: FormData) {
     return { error: getFirstZodError(parsed.error) }
   }
 
+  const today = new Date()
+  const tanggal_lahir = new Date(
+    today.getFullYear() - parsed.data.umur_tahun,
+    today.getMonth() - parsed.data.umur_bulan,
+    today.getDate()
+  ).toISOString().split('T')[0]
+
   const { error } = await supabase
     .from('ternak')
     .update({
-      umur: parsed.data.umur || null,
+      jenis_penanda: parsed.data.jenis_penanda,
+      identitas_penanda: parsed.data.identitas_penanda,
+      fase: parsed.data.fase,
+      jenis_kelamin: parsed.data.jenis_kelamin,
+      tanggal_lahir: tanggal_lahir,
       berat_badan: parsed.data.berat_badan ?? null,
-      status_hidup: parsed.data.status_hidup,
+      status: parsed.data.status,
     })
-    .eq('no_eartag', eartag)
+    .eq('id', id)
 
   if (error) {
     return { error: 'Gagal mengupdate data ternak.' }
   }
 
   revalidatePath('/ternak')
-  revalidatePath(`/ternak/${eartag}/edit`)
+  revalidatePath('/dashboard')
+  revalidatePath(`/ternak/${id}/edit`)
   return { success: true }
 }
 
 // ──────────────────────────────────────────────
 // HAPUS TERNAK (Admin only)
 // ──────────────────────────────────────────────
-export async function hapusTernak(eartag: string) {
+export async function hapusTernak(id: string) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -107,7 +126,7 @@ export async function hapusTernak(eartag: string) {
   const { error } = await supabase
     .from('ternak')
     .delete()
-    .eq('no_eartag', eartag)
+    .eq('id', id)
 
   if (error) {
     return { error: 'Gagal menghapus data ternak.' }

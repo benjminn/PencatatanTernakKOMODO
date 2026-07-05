@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, LayoutDashboard, List, PlusCircle, Users, Tag, LogOut, Settings } from 'lucide-react'
+import {
+  Menu, X, LayoutDashboard, List, PlusCircle, Users, Tag,
+  LogOut, ShieldCheck, UserCircle, ShieldAlert, ChevronRight,
+} from 'lucide-react'
 import { logout } from '@/lib/actions/auth.actions'
 import type { Pemilik } from '@/types/database.types'
 
@@ -12,137 +16,128 @@ interface NavbarProps {
 }
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Dashboard',
+  '/dashboard': 'Beranda',
   '/ternak': 'Daftar Ternak',
   '/ternak/tambah': 'Tambah Ternak',
+  '/admin/dashboard': 'Dashboard',
   '/admin/peternak': 'Data Peternak',
-  '/admin/jenis-ternak': 'Master Jenis Ternak',
+  '/admin/jenis-ternak': 'Jenis Ternak',
+  '/profil': 'Profil Saya',
+  '/admin/kelola-admin': 'Kelola Admin',
+}
+
+const NAV_CONFIGS = {
+  peternak: [
+    { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+    { href: '/ternak', label: 'Ternak Saya', icon: List },
+    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+    { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+  ],
+  admin: [
+    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/ternak', label: 'Semua Ternak', icon: List },
+    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+    { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
+    { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+    { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+  ],
+  superadmin: [
+    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/ternak', label: 'Semua Ternak', icon: List },
+    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+    { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
+    { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+    { href: '/admin/kelola-admin', label: 'Kelola Admin', icon: ShieldAlert },
+    { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+  ],
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  peternak: 'Peternak',
+  admin: 'Petugas Puskeswan',
+  superadmin: 'Super Admin',
 }
 
 export default function Navbar({ pemilik }: NavbarProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  const pageTitle = Object.entries(PAGE_TITLES).find(([key]) =>
-    pathname === key || (key !== '/dashboard' && pathname.startsWith(key))
-  )?.[1] ?? 'Menu'
+  const pageTitle =
+    Object.entries(PAGE_TITLES).find(
+      ([key]) => pathname === key || (key !== '/dashboard' && key !== '/admin/dashboard' && pathname.startsWith(key))
+    )?.[1] ?? ''
 
-  const isAdmin = pemilik.role === 'admin'
-  const mobileNavItems = isAdmin
-    ? [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/ternak', label: 'Semua Ternak', icon: List },
-        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-        { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
-        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
-      ]
-    : [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/ternak', label: 'Ternak Saya', icon: List },
-        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-      ]
+  const isAdminRole = pemilik.role === 'admin' || pemilik.role === 'superadmin'
+  const navItems = NAV_CONFIGS[pemilik.role as keyof typeof NAV_CONFIGS] || NAV_CONFIGS.peternak
 
   return (
     <>
       <header
-        className="h-14 flex items-center justify-between px-4 md:px-6 border-b shrink-0"
-        style={{
-          background: 'var(--color-bg-surface)',
-          borderColor: 'var(--color-bg-border)',
-        }}
+        className="md:hidden h-14 flex items-center justify-between px-4 shrink-0"
+        style={{ background: 'white', borderBottom: '1px solid #e2e8f0' }}
       >
-        {/* Mobile: Logo + Menu button */}
-        <div className="flex items-center gap-3 md:hidden">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-lg"
-            style={{ background: 'var(--color-primary-600)' }}
-          >
-            🐄
+        {/* Mobile brand */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 relative shrink-0">
+            <Image src="/logo/6311a9ed51648_300x300.webp" alt="Logo" fill className="object-contain" />
           </div>
-          <span className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>
-            Pencatatan Ternak
-          </span>
+          <span className="font-bold text-sm text-gray-900">Pencatatan Ternak</span>
         </div>
 
-        {/* Desktop: Page title */}
-        <h2 className="hidden md:block font-semibold text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          {pageTitle}
-        </h2>
-
-        {/* Right side */}
-        <div className="flex items-center gap-2">
-          {/* User info (desktop) */}
-          <div className="hidden md:flex items-center gap-2">
-            {isAdmin && (
-              <span className="badge badge-admin text-xs">
-                <Settings size={9} /> Admin
-              </span>
-            )}
-            <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-              {pemilik.nama_lengkap}
-            </span>
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-              style={{ background: 'var(--color-primary-600)', color: 'white' }}
-            >
-              {pemilik.nama_lengkap.charAt(0).toUpperCase()}
-            </div>
-          </div>
-
-          {/* Mobile menu toggle */}
-          <button
-            className="md:hidden btn btn-ghost btn-sm"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
-        </div>
+        {/* Right side: Mobile toggle */}
+        <button
+          className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          onClick={() => setOpen(!open)}
+          aria-label="Buka menu"
+        >
+          {open ? <X size={20} className="text-gray-600" /> : <Menu size={20} className="text-gray-600" />}
+        </button>
       </header>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-50"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          <div className="absolute inset-0 bg-black/60" />
+      {/* Mobile drawer */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-50" onClick={() => setOpen(false)}>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
           <nav
-            className="absolute top-0 left-0 bottom-0 w-72 flex flex-col"
-            style={{ background: 'var(--color-bg-surface)' }}
+            className="absolute top-0 right-0 bottom-0 w-72 flex flex-col bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div
-              className="flex items-center justify-between p-4 border-b"
-              style={{ borderColor: 'var(--color-bg-border)' }}
-            >
-              <div>
-                <p className="font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                  {pemilik.nama_lengkap}
-                </p>
-                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  NIK: {pemilik.nik}
-                </p>
+            {/* Drawer header */}
+            <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid #f1f5f9' }}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                  style={{ background: '#166534', color: 'white' }}
+                >
+                  {pemilik.nama_lengkap.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm text-gray-900 truncate">
+                    {pemilik.nama_lengkap}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {ROLE_LABEL[pemilik.role] || pemilik.role}
+                  </p>
+                </div>
               </div>
-              <button onClick={() => setMobileMenuOpen(false)} className="btn btn-ghost btn-sm">
-                <X size={18} />
+              <button onClick={() => setOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100">
+                <X size={18} className="text-gray-500" />
               </button>
             </div>
 
             {/* Nav links */}
-            <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
-              {mobileNavItems.map((item) => {
+            <div className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+              {navItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href
+                const active = pathname === item.href
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`sidebar-link ${isActive ? 'active' : ''}`}
-                    onClick={() => setMobileMenuOpen(false)}
+                    className={`sidebar-link ${active ? 'active' : ''}`}
+                    onClick={() => setOpen(false)}
                   >
-                    <Icon size={16} />
+                    <Icon size={18} />
                     {item.label}
                   </Link>
                 )
@@ -150,14 +145,10 @@ export default function Navbar({ pemilik }: NavbarProps) {
             </div>
 
             {/* Logout */}
-            <div className="p-3 border-t" style={{ borderColor: 'var(--color-bg-border)' }}>
+            <div className="p-3" style={{ borderTop: '1px solid #f1f5f9' }}>
               <form action={logout}>
-                <button
-                  type="submit"
-                  className="sidebar-link w-full text-left"
-                  style={{ color: 'var(--color-mati)' }}
-                >
-                  <LogOut size={16} />
+                <button type="submit" className="sidebar-link w-full text-left" style={{ color: '#dc2626' }}>
+                  <LogOut size={18} />
                   Keluar
                 </button>
               </form>
