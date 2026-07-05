@@ -8,8 +8,7 @@ import { getFirstZodError } from '@/lib/validations/schemas'
 const updatePeternakSchema = z.object({
   nik: z.string().min(16, 'NIK minimal 16 karakter').max(16, 'NIK maksimal 16 karakter'),
   nama_lengkap: z.string().min(3, 'Nama lengkap minimal 3 karakter'),
-  alamat_desa: z.string().min(1, 'Desa wajib diisi'),
-  alamat_kec: z.string().min(1, 'Kecamatan wajib diisi'),
+  id_desa: z.string().min(1, 'Desa wajib diisi'),
   alamat_detail: z.string().min(5, 'Detail alamat terlalu singkat'),
 })
 
@@ -33,8 +32,7 @@ export async function updatePeternakAsAdmin(id: string, formData: FormData) {
   const rawData = {
     nik: formData.get('nik'),
     nama_lengkap: formData.get('nama_lengkap'),
-    alamat_desa: formData.get('alamat_desa'),
-    alamat_kec: formData.get('alamat_kec'),
+    id_desa: formData.get('id_desa'),
     alamat_detail: formData.get('alamat_detail'),
   }
 
@@ -60,8 +58,7 @@ export async function updatePeternakAsAdmin(id: string, formData: FormData) {
     .update({
       nik: parsed.data.nik,
       nama_lengkap: parsed.data.nama_lengkap,
-      alamat_desa: parsed.data.alamat_desa,
-      alamat_kec: parsed.data.alamat_kec,
+      id_desa: parsed.data.id_desa,
       alamat_detail: parsed.data.alamat_detail,
     })
     .eq('id', id)

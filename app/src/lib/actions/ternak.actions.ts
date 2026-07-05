@@ -116,7 +116,7 @@ export async function tambahTernakBulk(dataArray: any[]) {
       jenis_kelamin: parsed.data.jenis_kelamin,
       tanggal_lahir: tanggal_lahir,
       berat_badan: parsed.data.berat_badan ?? null,
-      status: 'hidup',
+      status: 'hidup' as const,
     })
   }
 

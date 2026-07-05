@@ -4,11 +4,15 @@ import { useRef, useState, useEffect } from 'react'
 import { Printer, Download, Loader2 } from 'lucide-react'
 import type { Pemilik, TernakLengkap } from '@/types/database.types'
 
+interface PemilikWithDesa extends Pemilik {
+  master_desa?: { nama_desa: string, kecamatan: string } | null
+}
+
 interface KartuTernakClientProps {
-  pemilik: Pemilik
+  pemilik: PemilikWithDesa
   ternakList: TernakLengkap[]
   isAdmin?: boolean
-  pemilikList?: Pemilik[]
+  pemilikList?: PemilikWithDesa[]
 }
 
 import { useRouter } from 'next/navigation'
@@ -20,7 +24,7 @@ function PeternakCombobox({ pemilikList, onSelect, defaultValue }: { pemilikList
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const filtered = pemilikList.filter(p => 
-    `${p.nama_lengkap} ${p.nik} ${p.alamat_desa}`.toLowerCase().includes(query.toLowerCase())
+    `${p.nama_lengkap} ${p.nik} ${p.master_desa?.nama_desa}`.toLowerCase().includes(query.toLowerCase())
   ).slice(0, 50)
 
   useEffect(() => {
@@ -56,13 +60,13 @@ function PeternakCombobox({ pemilikList, onSelect, defaultValue }: { pemilikList
               key={p.id}
               className="px-4 py-3 hover:bg-green-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors"
               onClick={() => {
-                setQuery(`${p.nama_lengkap} - Desa ${p.alamat_desa}`)
+                setQuery(`${p.nama_lengkap} - Desa ${p.master_desa?.nama_desa}`)
                 setIsOpen(false)
                 onSelect(p.nik)
               }}
             >
               <div className="font-bold text-gray-900">{p.nama_lengkap}</div>
-              <div className="text-xs text-gray-500 mt-0.5"><span className="font-mono">{p.nik}</span> • Desa {p.alamat_desa}</div>
+              <div className="text-xs text-gray-500 mt-0.5"><span className="font-mono">{p.nik}</span> • Desa {p.master_desa?.nama_desa}</div>
             </li>
           )) : (
             <li className="px-4 py-4 text-sm text-gray-500 text-center italic">Tidak ada hasil ditemukan.</li>
@@ -173,7 +177,7 @@ export default function KartuTernakClient({ pemilik, ternakList, isAdmin, pemili
             
             <PeternakCombobox 
               pemilikList={pemilikList} 
-              defaultValue={`${pemilik.nama_lengkap} - Desa ${pemilik.alamat_desa}`}
+              defaultValue={`${pemilik.nama_lengkap} - Desa ${pemilik.master_desa?.nama_desa || '...'}`}
               onSelect={(nik) => {
                 if (nik !== pemilik.nik) {
                   router.push(`/kartu-ternak?nik=${nik}`)
@@ -221,8 +225,8 @@ export default function KartuTernakClient({ pemilik, ternakList, isAdmin, pemili
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
             <InfoRow label="Nama Pemilik" value={pemilik.nama_lengkap} />
             <InfoRow label="NIK" value={pemilik.nik} mono />
-            <InfoRow label="Desa / Kelurahan" value={pemilik.alamat_desa} />
-            <InfoRow label="Kecamatan" value={pemilik.alamat_kec} />
+            <InfoRow label="Desa / Kelurahan" value={pemilik.master_desa?.nama_desa || '...'} />
+            <InfoRow label="Kecamatan" value={pemilik.master_desa?.kecamatan || '...'} />
             <InfoRow label="Alamat Detail" value={pemilik.alamat_detail} fullWidth />
           </div>
         </div>

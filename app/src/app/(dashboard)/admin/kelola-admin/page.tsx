@@ -19,7 +19,7 @@ export default async function KelolaAdminPage() {
   }
 
   const { data: allUsers } = await supabase
-    .from('pemilik').select('*').order('created_at', { ascending: false })
+    .from('pemilik').select('*, master_desa(nama_desa)').order('created_at', { ascending: false })
 
   return (
     <div className="space-y-6 max-w-full pb-8">
@@ -67,7 +67,7 @@ export default async function KelolaAdminPage() {
                     </div>
                   </td>
                   <td><code className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">{p.nik}</code></td>
-                  <td className="text-gray-700">{p.alamat_desa}</td>
+                  <td className="text-gray-700">{p.master_desa?.nama_desa || '...'}</td>
                   <td className="text-xs text-gray-400 whitespace-nowrap">
                     {new Date(p.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
