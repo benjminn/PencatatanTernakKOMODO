@@ -21,7 +21,7 @@ export default async function AdminStatistikPage() {
   // But for this scale, client-side aggregation after fetching is totally fine and interactive.
   const { data: ternakData } = await supabase
     .from('v_ternak_lengkap')
-    .select('id, nama_jenis, status, alamat_desa, fase, jenis_kelamin, berat_badan')
+    .select('*')
 
   // Fetch total count of peternak
   const { count: peternakCount } = await supabase

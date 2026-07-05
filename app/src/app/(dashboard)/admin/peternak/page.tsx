@@ -29,18 +29,14 @@ export default async function AdminPeternakPage({
 
   let query = supabase
     .from('pemilik')
-    .select('*', { count: 'exact' })
+    .select('*, master_desa!inner(nama_desa)', { count: 'exact' })
     .eq('role', 'peternak')
 
   if (params.search) {
     query = query.or(`nama_lengkap.ilike.%${params.search}%,nik.ilike.%${params.search}%`)
   }
   if (params.desa) {
-    query = query.eq('alamat_desa', params.desa)
-  }
-
-  if (params.desa) {
-    query = query.eq('alamat_desa', params.desa)
+    query = query.eq('master_desa.nama_desa', params.desa)
   }
 
   // Handle Sorting
@@ -82,7 +78,7 @@ export default async function AdminPeternakPage({
                 <th className="w-12 text-center">No.</th>
                 <th><SortableHeader label="Nama Peternak" field="nama_lengkap" /></th>
                 <th><SortableHeader label="NIK" field="nik" /></th>
-                <th><SortableHeader label="Desa" field="alamat_desa" /></th>
+                <th>Desa</th>
                 <th>Detail Alamat</th>
                 <th>Ternak</th>
                 <th><SortableHeader label="Terdaftar" field="created_at" /></th>
@@ -106,7 +102,7 @@ export default async function AdminPeternakPage({
                     </div>
                   </td>
                   <td><code className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">{p.nik}</code></td>
-                  <td className="text-gray-700">{p.alamat_desa}</td>
+                  <td className="text-gray-700">{p.master_desa?.nama_desa || '...'}</td>
                   <td className="text-xs text-gray-500 max-w-[200px] truncate" title={p.alamat_detail}>
                     {p.alamat_detail}
                   </td>

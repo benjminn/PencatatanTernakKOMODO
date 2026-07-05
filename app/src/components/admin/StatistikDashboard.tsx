@@ -222,7 +222,7 @@ export default function StatistikDashboard({ ternakData, peternakCount }: Statis
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [`${value} Ekor`, 'Jumlah']} 
+                    formatter={(value: any) => [`${value} Ekor`, 'Jumlah']} 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend verticalAlign="bottom" height={36} />
@@ -246,7 +246,7 @@ export default function StatistikDashboard({ ternakData, peternakCount }: Statis
                   <YAxis dataKey="name" type="category" width={80} fontWeight="bold" />
                   <Tooltip 
                     cursor={{fill: '#f8fafc'}}
-                    formatter={(value: number) => [`${value} Ekor`, 'Jumlah']}
+                    formatter={(value: any) => [`${value} Ekor`, 'Jumlah']}
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={40}>
@@ -300,7 +300,7 @@ export default function StatistikDashboard({ ternakData, peternakCount }: Statis
                   <YAxis />
                   <Tooltip 
                     cursor={{fill: '#f8fafc'}}
-                    formatter={(value: number) => [`${value} Kg`, 'Rata-rata Berat']}
+                    formatter={(value: any) => [`${value} Kg`, 'Rata-rata Berat']}
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Bar dataKey="RataRata" fill="#8b5cf6" radius={[6, 6, 0, 0]} barSize={40} />
@@ -333,7 +333,7 @@ export default function StatistikDashboard({ ternakData, peternakCount }: Statis
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [`${value} Ekor`, 'Jumlah']} 
+                    formatter={(value: any) => [`${value} Ekor`, 'Jumlah']} 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend verticalAlign="bottom" height={36} />
@@ -358,7 +358,7 @@ export default function StatistikDashboard({ ternakData, peternakCount }: Statis
                     <YAxis />
                     <Tooltip 
                       cursor={{fill: '#f8fafc'}}
-                      formatter={(value: number) => [`${value} Ekor`, 'Populasi']}
+                      formatter={(value: any) => [`${value} Ekor`, 'Populasi']}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Bar dataKey="Populasi" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={50} />

@@ -11,6 +11,24 @@ export type StatusTernak = 'hidup' | 'mati' | 'dijual'
 export interface Database {
   public: {
     Tables: {
+      master_desa: {
+        Row: {
+          id: string
+          nama_desa: string
+          kecamatan: string
+        }
+        Insert: {
+          id?: string
+          nama_desa: string
+          kecamatan?: string
+        }
+        Update: {
+          id?: string
+          nama_desa?: string
+          kecamatan?: string
+        }
+        Relationships: []
+      }
       master_jenis_ternak: {
         Row: {
           id: number
@@ -66,7 +84,15 @@ export interface Database {
           role?: 'peternak' | 'admin' | 'superadmin'
           created_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pemilik_id_desa_fkey"
+            columns: ["id_desa"]
+            isOneToOne: false
+            referencedRelation: "master_desa"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       ternak: {
         Row: {
