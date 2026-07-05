@@ -44,69 +44,128 @@ export default async function DashboardPage() {
   const totalHidup = ternakList?.filter((t) => t.status === 'hidup').length ?? 0
   const totalMati = ternakList?.filter((t) => t.status === 'mati').length ?? 0
   const totalDijual = ternakList?.filter((t) => t.status === 'dijual').length ?? 0
+  
+  const ternakHidup = ternakList?.filter(t => t.status === 'hidup') ?? []
+  const jenisCount = ternakHidup.reduce((acc, curr) => {
+    acc[curr.nama_jenis] = (acc[curr.nama_jenis] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
   return (
     <div className="space-y-6 max-w-full pb-8">
-      {/* Welcome */}
-      <div className="rounded-xl p-5" style={{ background: 'linear-gradient(135deg, #166534, #15803d)', color: 'white' }}>
-        <h1 className="text-lg font-bold">
-          Selamat datang, {pemilik.nama_lengkap.split(' ')[0]}!
-        </h1>
-        <p className="text-sm mt-0.5 text-green-200">
-          Pantau dan kelola data ternak Anda di sini.
-        </p>
-      </div>
-
-      {/* Info + Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Profile snippet */}
-        <div className="card sm:col-span-2">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-sm text-gray-900">Profil Pemilik</h2>
-            <Link href="/profil" className="text-xs text-green-700 font-medium hover:underline">
-              Edit →
-            </Link>
-          </div>
-          <div className="space-y-1.5 text-sm">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Hash size={14} className="text-gray-400" />
-              <span>NIK:</span>
-              <span className="font-mono font-semibold text-gray-900">{pemilik.nik}</span>
-            </div>
-            <div className="flex items-start gap-2 text-gray-600">
-              <MapPin size={14} className="text-gray-400 mt-0.5 shrink-0" />
-              <span>{pemilik.alamat_detail}, Desa {pemilik.alamat_desa}, Kec. {pemilik.alamat_kec}</span>
-            </div>
-          </div>
+      {/* Welcome Banner */}
+      <div className="rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #166534, #15803d)', color: 'white' }}>
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+          <svg width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h18"/><path d="M12 2v20"/><path d="M12 7l-5-5-5 5"/><path d="M12 17l5 5 5-5"/></svg>
         </div>
-
-        {/* Stats */}
-        <div className="stats-card">
-          <p className="text-xs font-medium text-gray-500 mb-1">Total Ternak</p>
-          <p className="text-2xl font-bold text-gray-900">{ternakList?.length ?? 0}</p>
+        <div className="relative z-10">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Halo, {pemilik.nama_lengkap.split(' ')[0]}! 👋
+          </h1>
+          <p className="text-sm sm:text-base mt-2 text-green-100 max-w-lg leading-relaxed">
+            Selamat datang di Dashboard Peternak. Pantau kondisi ternak Anda, cetak kartu kepemilikan, dan kelola data ternak dengan mudah.
+          </p>
         </div>
-        <div className="stats-card">
-          <p className="text-xs font-medium text-gray-500 mb-1">Status</p>
-          <div className="flex gap-3 text-sm font-semibold mt-1">
-            <span className="text-green-600">{totalHidup} hidup</span>
-            <span className="text-red-500">{totalMati} mati</span>
-            <span className="text-amber-600">{totalDijual} dijual</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Ternak */}
-      <div>
-        <div className="page-header">
-          <div>
-            <h2 className="page-title">Daftar Ternak</h2>
-            <p className="page-subtitle">Semua hewan ternak atas nama Anda</p>
-          </div>
-          <Link href="/ternak/tambah" className="btn btn-primary">
-            <PlusCircle size={16} /> Tambah
+        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 relative z-10 shrink-0">
+          <Link href="/ternak/tambah" className="btn bg-white text-green-800 hover:bg-green-50 shadow-sm rounded-xl py-3 px-5 w-full md:w-auto">
+            <PlusCircle size={18} /> Tambah Ternak
+          </Link>
+          <Link href="/kartu-ternak" className="btn bg-green-700/50 hover:bg-green-700/70 border border-green-500/30 text-white backdrop-blur-sm rounded-xl py-3 px-5 w-full md:w-auto">
+            Cetak Kartu
           </Link>
         </div>
-        <TernakTable data={ternakList ?? []} isAdmin={false} />
+      </div>
+
+      {/* Profil & Stats Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        {/* Kolom Kiri: Profil & Stats */}
+        <div className="lg:col-span-4 flex flex-col gap-6 h-full">
+          {/* Profil */}
+          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden flex-1 flex flex-col">
+            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <h2 className="font-bold text-gray-800 flex items-center gap-2">
+                <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><MapPin size={16} /></span>
+                Profil Pemilik
+              </h2>
+              <Link href="/profil" className="text-xs text-blue-600 font-semibold hover:underline bg-blue-50 px-2 py-1 rounded-md">
+                Edit
+              </Link>
+            </div>
+            <div className="space-y-4 text-sm mt-4">
+              <div>
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Nama Lengkap</p>
+                <p className="font-semibold text-gray-900">{pemilik.nama_lengkap}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">NIK</p>
+                <p className="font-mono text-gray-800 font-medium">{pemilik.nik}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Alamat</p>
+                <p className="text-gray-700 leading-snug">
+                  {pemilik.alamat_detail}<br/>
+                  <span className="text-gray-500 text-xs">Desa {pemilik.alamat_desa}, Kec. {pemilik.alamat_kec}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group hover:border-blue-200 transition-colors flex flex-col justify-between">
+              <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 relative z-10">Total Ternak</p>
+              <div className="flex items-end gap-1.5 relative z-10">
+                <span className="text-3xl font-extrabold text-gray-900 leading-none">{ternakList?.length ?? 0}</span>
+                <span className="text-xs sm:text-sm text-gray-500 font-medium mb-0.5">Ekor</span>
+              </div>
+            </div>
+            
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-green-100 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+              <p className="text-[10px] sm:text-xs font-bold text-green-600 uppercase tracking-wider mb-1 relative z-10">Hidup</p>
+              <div className="flex items-end gap-1.5 relative z-10">
+                <span className="text-3xl font-extrabold text-green-700 leading-none">{totalHidup}</span>
+                <span className="text-xs sm:text-sm text-green-600/70 font-medium mb-0.5">Ekor</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-red-100 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
+              <p className="text-[10px] sm:text-xs font-bold text-red-500 uppercase tracking-wider mb-1 relative z-10">Mati</p>
+              <div className="flex items-end gap-1.5 relative z-10">
+                <span className="text-3xl font-extrabold text-red-600 leading-none">{totalMati}</span>
+                <span className="text-xs sm:text-sm text-red-500/70 font-medium mb-0.5">Ekor</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
+              <p className="text-[10px] sm:text-xs font-bold text-amber-500 uppercase tracking-wider mb-1 relative z-10">Dijual</p>
+              <div className="flex items-end gap-1.5 relative z-10">
+                <span className="text-3xl font-extrabold text-amber-600 leading-none">{totalDijual}</span>
+                <span className="text-xs sm:text-sm text-amber-600/70 font-medium mb-0.5">Ekor</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Kolom Kanan: Tabel Ternak */}
+        <div className="lg:col-span-8 flex flex-col h-full">
+          {/* Tabel Ternak Terkini */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col h-full overflow-hidden">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div>
+                <h2 className="font-bold text-gray-800 text-lg">Daftar Ternak</h2>
+                <p className="text-xs text-gray-500 mt-0.5">Menampilkan semua ternak Anda</p>
+              </div>
+            </div>
+            <div className="p-5 overflow-x-auto flex-1">
+              <TernakTable data={ternakList ?? []} isAdmin={false} hideKelamin={true} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

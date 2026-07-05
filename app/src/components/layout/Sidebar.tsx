@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   UserCircle,
   ShieldAlert,
+  CreditCard,
 } from 'lucide-react'
 import { logout } from '@/lib/actions/auth.actions'
 
@@ -23,24 +24,56 @@ interface SidebarProps {
 
 const NAV_CONFIGS = {
   peternak: [
-    { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
-    { href: '/ternak', label: 'Ternak Saya', icon: List },
-    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+    {
+      group: 'Menu Utama',
+      items: [
+        { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+        { href: '/ternak', label: 'Ternak Saya', icon: List },
+        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+        { href: '/kartu-ternak', label: 'Kartu Ternak', icon: CreditCard },
+      ]
+    }
   ],
   admin: [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/ternak', label: 'Semua Ternak', icon: List },
-    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-    { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
-    { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+    {
+      group: 'Panel Admin',
+      items: [
+        { href: '/admin/dashboard', label: 'Dashboard Admin', icon: LayoutDashboard },
+        { href: '/admin/peternak', label: 'Kelola Peternak', icon: Users },
+        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+        { href: '/admin/ternak', label: 'Kelola Semua Ternak', icon: List },
+      ]
+    },
+    {
+      group: 'Menu Peternak',
+      items: [
+        { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+        { href: '/ternak', label: 'Ternak Saya', icon: List },
+        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+        { href: '/kartu-ternak', label: 'Cetak Kartu', icon: CreditCard },
+      ]
+    }
   ],
   superadmin: [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/ternak', label: 'Semua Ternak', icon: List },
-    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-    { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
-    { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
-    { href: '/admin/kelola-admin', label: 'Kelola Admin', icon: ShieldAlert },
+    {
+      group: 'Panel Super Admin',
+      items: [
+        { href: '/admin/dashboard', label: 'Dashboard Admin', icon: LayoutDashboard },
+        { href: '/admin/kelola-admin', label: 'Kelola Admin', icon: ShieldAlert },
+        { href: '/admin/peternak', label: 'Kelola Peternak', icon: Users },
+        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+        { href: '/admin/ternak', label: 'Kelola Semua Ternak', icon: List },
+      ]
+    },
+    {
+      group: 'Menu Peternak',
+      items: [
+        { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+        { href: '/ternak', label: 'Ternak Saya', icon: List },
+        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+        { href: '/kartu-ternak', label: 'Cetak Kartu', icon: CreditCard },
+      ]
+    }
   ],
 }
 
@@ -52,7 +85,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 export default function Sidebar({ role, namaPemilik }: SidebarProps) {
   const pathname = usePathname()
-  const navItems = NAV_CONFIGS[role] || NAV_CONFIGS.peternak
+  const navGroups = NAV_CONFIGS[role] || NAV_CONFIGS.peternak
 
   const isActive = (href: string) => {
     if (href === '/dashboard' || href === '/admin/dashboard') return pathname === href
@@ -86,30 +119,34 @@ export default function Sidebar({ role, namaPemilik }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-        <p className="text-[0.6875rem] font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
-          Menu Utama
-        </p>
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const active = isActive(item.href)
-          return (
-            <Link key={item.href} href={item.href} className={`sidebar-link ${active ? 'active' : ''}`}>
-              <Icon size={17} />
-              {item.label}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
+        {navGroups.map((group, idx) => (
+          <div key={idx} className="space-y-1">
+            <p className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider px-3 mb-1.5">
+              {group.group}
+            </p>
+            {group.items.map((item) => {
+              const Icon = item.icon
+              const active = isActive(item.href)
+              return (
+                <Link key={item.href} href={item.href} className={`sidebar-link ${active ? 'active' : ''}`}>
+                  <Icon size={17} />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
 
-        <div className="divider" />
-
-        <p className="text-[0.6875rem] font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
-          Akun
-        </p>
-        <Link href="/profil" className={`sidebar-link ${pathname === '/profil' ? 'active' : ''}`}>
-          <UserCircle size={17} />
-          Profil Saya
-        </Link>
+        <div className="space-y-1 pt-1 border-t border-gray-100">
+          <p className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider px-3 mb-1.5 mt-4">
+            Akun
+          </p>
+          <Link href="/profil" className={`sidebar-link ${pathname === '/profil' ? 'active' : ''}`}>
+            <UserCircle size={17} />
+            Profil Saya
+          </Link>
+        </div>
       </nav>
 
       {/* User Footer */}

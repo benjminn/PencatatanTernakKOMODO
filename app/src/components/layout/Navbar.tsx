@@ -22,33 +22,61 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/dashboard': 'Dashboard',
   '/admin/peternak': 'Data Peternak',
   '/admin/jenis-ternak': 'Jenis Ternak',
+  '/admin/ternak': 'Kelola Ternak',
   '/profil': 'Profil Saya',
   '/admin/kelola-admin': 'Kelola Admin',
 }
 
 const NAV_CONFIGS = {
   peternak: [
-    { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
-    { href: '/ternak', label: 'Ternak Saya', icon: List },
-    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-    { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+    {
+      group: 'Menu Utama',
+      items: [
+        { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+        { href: '/ternak', label: 'Ternak Saya', icon: List },
+        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+        { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+      ]
+    }
   ],
   admin: [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/ternak', label: 'Semua Ternak', icon: List },
-    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-    { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
-    { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
-    { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+    {
+      group: 'Panel Admin',
+      items: [
+        { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
+        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+        { href: '/admin/ternak', label: 'Kelola Ternak', icon: List },
+      ]
+    },
+    {
+      group: 'Menu Peternak',
+      items: [
+        { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+        { href: '/ternak', label: 'Ternak Saya', icon: List },
+        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+      ]
+    }
   ],
   superadmin: [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/ternak', label: 'Semua Ternak', icon: List },
-    { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-    { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
-    { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
-    { href: '/admin/kelola-admin', label: 'Kelola Admin', icon: ShieldAlert },
-    { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+    {
+      group: 'Panel Super Admin',
+      items: [
+        { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/admin/kelola-admin', label: 'Kelola Admin', icon: ShieldAlert },
+        { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
+        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+        { href: '/admin/ternak', label: 'Kelola Ternak', icon: List },
+      ]
+    },
+    {
+      group: 'Menu Peternak',
+      items: [
+        { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+        { href: '/ternak', label: 'Ternak Saya', icon: List },
+        { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+      ]
+    }
   ],
 }
 
@@ -68,7 +96,7 @@ export default function Navbar({ pemilik }: NavbarProps) {
     )?.[1] ?? ''
 
   const isAdminRole = pemilik.role === 'admin' || pemilik.role === 'superadmin'
-  const navItems = NAV_CONFIGS[pemilik.role as keyof typeof NAV_CONFIGS] || NAV_CONFIGS.peternak
+  const navGroups = NAV_CONFIGS[pemilik.role as keyof typeof NAV_CONFIGS] || NAV_CONFIGS.peternak
 
   return (
     <>
@@ -126,22 +154,43 @@ export default function Navbar({ pemilik }: NavbarProps) {
             </div>
 
             {/* Nav links */}
-            <div className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-              {navItems.map((item) => {
-                const Icon = item.icon
-                const active = pathname === item.href
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`sidebar-link ${active ? 'active' : ''}`}
-                    onClick={() => setOpen(false)}
-                  >
-                    <Icon size={18} />
-                    {item.label}
-                  </Link>
-                )
-              })}
+            <div className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
+              {navGroups.map((group, idx) => (
+                <div key={idx} className="space-y-1">
+                  <p className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider px-3 mb-1.5">
+                    {group.group}
+                  </p>
+                  {group.items.map((item) => {
+                    const Icon = item.icon
+                    const active = pathname === item.href
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`sidebar-link ${active ? 'active' : ''}`}
+                        onClick={() => setOpen(false)}
+                      >
+                        <Icon size={18} />
+                        {item.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              ))}
+              
+              <div className="space-y-1 pt-1 border-t border-gray-100">
+                <p className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider px-3 mb-1.5 mt-4">
+                  Akun
+                </p>
+                <Link
+                  href="/profil"
+                  className={`sidebar-link ${pathname === '/profil' ? 'active' : ''}`}
+                  onClick={() => setOpen(false)}
+                >
+                  <UserCircle size={18} />
+                  Profil Saya
+                </Link>
+              </div>
             </div>
 
             {/* Logout */}

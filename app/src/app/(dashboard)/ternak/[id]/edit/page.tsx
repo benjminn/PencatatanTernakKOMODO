@@ -26,6 +26,17 @@ export default async function EditTernakPage({
 
   if (!ternak) notFound()
 
+  const { data: me } = await supabase
+    .from('pemilik').select('role').eq('id', user.id).single()
+  
+  const isAdmin = me && (me.role === 'admin' || me.role === 'superadmin')
+
+  const { data: pemilikTernak } = await supabase
+    .from('pemilik')
+    .select('nama_lengkap')
+    .eq('id', ternak.id_pemilik)
+    .single()
+
   const { data: jenisList } = await supabase
     .from('master_jenis_ternak')
     .select('*')
@@ -45,6 +56,18 @@ export default async function EditTernakPage({
           </p>
         </div>
       </div>
+
+      {isAdmin && pemilikTernak && (
+        <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-blue-600 font-bold mb-1">Informasi Pemilik Ternak</p>
+            <p className="text-gray-800 text-sm">{pemilikTernak.nama_lengkap}</p>
+          </div>
+          <Link href={`/admin/peternak/${ternak.id_pemilik}`} className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition-colors">
+            Lihat Profil Lengkap
+          </Link>
+        </div>
+      )}
 
       <div className="card">
         <TernakFormClient

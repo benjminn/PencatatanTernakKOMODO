@@ -321,3 +321,27 @@
     margin-top: 1rem;
   }
 }
+
+/* ── Print Styles ── */
+@media print {
+  /* Hide everything except the printable card */
+  body { background: white !important; }
+  aside, nav, header, .print\\:hidden, .sidebar-link, button {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  .kartu-ternak-printable {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  /* Reset the flex layout so the card takes full page */
+  .flex.h-screen { display: block !important; }
+  .flex-1.overflow-y-auto { overflow: visible !important; height: auto !important; }
+}

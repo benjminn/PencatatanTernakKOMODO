@@ -2,13 +2,21 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Edit2 } from 'lucide-react'
+import { Edit2, Trash2 } from 'lucide-react'
 import type { TernakLengkap } from '@/types/database.types'
+import { hapusTernak } from '@/lib/actions/ternak.actions'
 import { formatDateShort, formatWeight } from '@/lib/utils'
+import { useTransition, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import SortableHeader from '@/components/ui/SortableHeader'
 
 interface TernakTableProps {
   data: TernakLengkap[]
   isAdmin: boolean
+  hideKelamin?: boolean
+  currentPage?: number
+  itemsPerPage?: number
 }
 
 const STATUS_CONFIG = {
@@ -16,8 +24,26 @@ const STATUS_CONFIG = {
   mati: { label: 'Mati', className: 'badge-mati', dot: '#ef4444' },
   dijual: { label: 'Dijual', className: 'badge-dijual', dot: '#f59e0b' },
 }
+export default function TernakTable({ 
+  data, 
+  isAdmin, 
+  hideKelamin = false,
+  currentPage = 1,
+  itemsPerPage = 15
+}: TernakTableProps) {
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+  
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
-export default function TernakTable({ data, isAdmin }: TernakTableProps) {
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return
+    startTransition(async () => {
+      await hapusTernak(deleteId)
+      setDeleteId(null)
+    })
+  }
+
   if (data.length === 0) {
     return (
       <div className="card">
@@ -46,24 +72,29 @@ export default function TernakTable({ data, isAdmin }: TernakTableProps) {
         <table className="table">
           <thead>
             <tr>
-              <th>Penanda</th>
-              <th>Jenis</th>
-              <th>Kelamin</th>
+              <th className="w-12 text-center">No.</th>
+              <th><SortableHeader label="Penanda" field="identitas_penanda" /></th>
+              <th><SortableHeader label="Jenis" field="nama_jenis" /></th>
+              <th>Fase</th>
+              {!hideKelamin && <th>Kelamin</th>}
               <th>Umur</th>
-              <th>Berat</th>
-              {isAdmin && <th>Pemilik</th>}
-              {isAdmin && <th>Desa</th>}
-              <th>Status</th>
-              <th>Diperbarui</th>
+              <th><SortableHeader label="Berat" field="berat_badan" /></th>
+              {isAdmin && <th><SortableHeader label="Pemilik" field="nama_lengkap" /></th>}
+              {isAdmin && <th><SortableHeader label="Desa" field="alamat_desa" /></th>}
+              <th><SortableHeader label="Status" field="status" /></th>
+              <th><SortableHeader label="Diperbarui" field="updated_at" /></th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {data.map((t) => {
+            {data.map((t, i) => {
               const cfg = STATUS_CONFIG[t.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.hidup
               const inactive = t.status === 'mati' || t.status === 'dijual'
               return (
                 <tr key={t.id} className={inactive ? (t.status === 'mati' ? 'row-mati' : 'row-dijual') : ''}>
+                  <td className="text-center font-medium text-gray-500">
+                    {(currentPage - 1) * itemsPerPage + i + 1}
+                  </td>
                   <td>
                     <div className="flex flex-col">
                       <span className="text-xs font-semibold text-gray-500 uppercase">{t.jenis_penanda}</span>
@@ -75,13 +106,16 @@ export default function TernakTable({ data, isAdmin }: TernakTableProps) {
                     </div>
                   </td>
                   <td className="font-medium">{t.nama_jenis}</td>
-                  <td>{t.jenis_kelamin}</td>
+                  <td className="text-gray-600">{t.fase || '—'}</td>
+                  {!hideKelamin && <td className="text-gray-600">{t.jenis_kelamin || '—'}</td>}
                   <td className="text-gray-600">{t.umur || '—'}</td>
                   <td className="text-gray-600">{formatWeight(t.berat_badan)}</td>
                   {isAdmin && (
                     <td>
                       <div>
-                        <p className="font-medium text-sm">{t.nama_lengkap}</p>
+                        <Link href={`/admin/peternak/${t.id_pemilik}`} className="font-medium text-sm text-blue-600 hover:underline">
+                          {t.nama_lengkap}
+                        </Link>
                         <p className="text-xs text-gray-400 font-mono">{t.nik}</p>
                       </div>
                     </td>
@@ -95,9 +129,20 @@ export default function TernakTable({ data, isAdmin }: TernakTableProps) {
                   </td>
                   <td className="text-xs text-gray-400 whitespace-nowrap">{formatDateShort(t.updated_at)}</td>
                   <td>
-                    <Link href={`/ternak/${t.id}/edit`} className="btn btn-ghost btn-sm">
-                      <Edit2 size={13} /> Edit
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/ternak/${t.id}/edit`} className="btn btn-ghost btn-sm">
+                        <Edit2 size={13} /> Edit
+                      </Link>
+                      {isAdmin && (
+                        <button 
+                          onClick={() => setDeleteId(t.id)} 
+                          className="btn btn-ghost btn-sm text-red-500 hover:text-red-700 hover:bg-red-50"
+                          disabled={isPending}
+                        >
+                          <Trash2 size={13} /> Hapus
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
@@ -111,10 +156,10 @@ export default function TernakTable({ data, isAdmin }: TernakTableProps) {
         {data.map((t) => {
           const cfg = STATUS_CONFIG[t.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.hidup
           return (
-            <Link
+            <div
               key={t.id}
-              href={`/ternak/${t.id}/edit`}
-              className="mobile-card block hover:border-green-300 transition-colors"
+              onClick={() => router.push(`/ternak/${t.id}/edit`)}
+              className="mobile-card block hover:border-green-300 transition-colors cursor-pointer"
             >
               <div className="flex items-start justify-between mb-2">
                 <div>
@@ -133,11 +178,17 @@ export default function TernakTable({ data, isAdmin }: TernakTableProps) {
                   {cfg.label}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm mt-3">
                 <div>
-                  <p className="text-xs text-gray-400">Kelamin</p>
-                  <p className="text-gray-700">{t.jenis_kelamin}</p>
+                  <p className="text-xs text-gray-400">Fase</p>
+                  <p className="text-gray-700">{t.fase || '—'}</p>
                 </div>
+                {!hideKelamin && (
+                  <div>
+                    <p className="text-xs text-gray-400">Kelamin</p>
+                    <p className="text-gray-700">{t.jenis_kelamin || '—'}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-gray-400">Umur</p>
                   <p className="text-gray-700">{t.umur || '—'}</p>
@@ -148,15 +199,39 @@ export default function TernakTable({ data, isAdmin }: TernakTableProps) {
                 </div>
               </div>
               {isAdmin && (
-                <div className="mt-2 pt-2 flex items-center justify-between text-xs" style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <span className="text-gray-500">{t.nama_lengkap} · {t.alamat_desa}</span>
-                  <span className="text-gray-400">{formatDateShort(t.updated_at)}</span>
+                <div className="mt-3 pt-3 flex items-center justify-between text-xs" style={{ borderTop: '1px solid #f1f5f9' }}>
+                  <div className="flex flex-col">
+                    <span className="text-gray-500 mb-1">Pemilik:</span>
+                    <Link href={`/admin/peternak/${t.id_pemilik}`} className="font-medium text-blue-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                      {t.nama_lengkap}
+                    </Link>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="text-gray-400">{formatDateShort(t.updated_at)}</span>
+                    <button 
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteId(t.id); }} 
+                      className="text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold"
+                      disabled={isPending}
+                    >
+                      <Trash2 size={12} /> Hapus
+                    </button>
+                  </div>
                 </div>
               )}
-            </Link>
+            </div>
           )
         })}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="Hapus Data Ternak"
+        description="Apakah Anda yakin ingin menghapus data ternak ini? Data yang dihapus tidak dapat dikembalikan."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteId(null)}
+        isPending={isPending}
+        confirmText="Hapus Ternak"
+      />
     </>
   )
 }

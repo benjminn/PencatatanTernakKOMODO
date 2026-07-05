@@ -1,13 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { UserPlus, Users } from 'lucide-react'
+import { UserPlus, Users, Eye } from 'lucide-react'
 import DeletePeternakButton from '@/components/admin/DeletePeternakButton'
+import PeternakFilterBar from '@/components/admin/PeternakFilterBar'
+import Pagination from '@/components/ui/Pagination'
+import SortableHeader from '@/components/ui/SortableHeader'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Data Peternak' }
 
-export default async function AdminPeternakPage() {
+export default async function AdminPeternakPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string; desa?: string; page?: string; sortField?: string; sortOrder?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -16,8 +23,38 @@ export default async function AdminPeternakPage() {
     .from('pemilik').select('role').eq('id', user.id).single()
   if (!me || (me.role !== 'admin' && me.role !== 'superadmin')) redirect('/dashboard')
 
-  const { data: peternak } = await supabase
-    .from('pemilik').select('*').eq('role', 'peternak').order('created_at', { ascending: false })
+  const params = await searchParams
+  const currentPage = parseInt(params.page || '1', 10)
+  const itemsPerPage = 15
+
+  let query = supabase
+    .from('pemilik')
+    .select('*', { count: 'exact' })
+    .eq('role', 'peternak')
+
+  if (params.search) {
+    query = query.or(`nama_lengkap.ilike.%${params.search}%,nik.ilike.%${params.search}%`)
+  }
+  if (params.desa) {
+    query = query.eq('alamat_desa', params.desa)
+  }
+
+  if (params.desa) {
+    query = query.eq('alamat_desa', params.desa)
+  }
+
+  // Handle Sorting
+  const sortField = params.sortField || 'created_at'
+  const sortOrder = params.sortOrder || 'desc'
+  const ascending = sortOrder === 'asc'
+
+  // Add pagination & sorting
+  query = query
+    .order(sortField, { ascending })
+    .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
+
+  const { data: peternak, count } = await query
+  const totalPages = count ? Math.ceil(count / itemsPerPage) : 1
 
   const { data: ternakCounts } = await supabase.from('ternak').select('id_pemilik')
   const countMap: Record<string, number> = {}
@@ -35,29 +72,37 @@ export default async function AdminPeternakPage() {
         </Link>
       </div>
 
+      <PeternakFilterBar currentParams={params} />
+
       {peternak && peternak.length > 0 ? (
         <div className="table-container">
           <table className="table">
             <thead>
               <tr>
-                <th>Nama Peternak</th>
-                <th>NIK</th>
-                <th>Desa</th>
+                <th className="w-12 text-center">No.</th>
+                <th><SortableHeader label="Nama Peternak" field="nama_lengkap" /></th>
+                <th><SortableHeader label="NIK" field="nik" /></th>
+                <th><SortableHeader label="Desa" field="alamat_desa" /></th>
                 <th>Detail Alamat</th>
                 <th>Ternak</th>
-                <th>Terdaftar</th>
+                <th><SortableHeader label="Terdaftar" field="created_at" /></th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {peternak.map((p) => (
+              {peternak.map((p, i) => (
                 <tr key={p.id}>
+                  <td className="text-center font-medium text-gray-500">
+                    {(currentPage - 1) * itemsPerPage + i + 1}
+                  </td>
                   <td>
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-green-100 text-green-800 shrink-0">
                         {p.nama_lengkap.charAt(0).toUpperCase()}
                       </div>
-                      <span className="font-semibold text-gray-900">{p.nama_lengkap}</span>
+                      <Link href={`/admin/peternak/${p.id}`} className="font-semibold text-blue-600 hover:underline">
+                        {p.nama_lengkap}
+                      </Link>
                     </div>
                   </td>
                   <td><code className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">{p.nik}</code></td>
@@ -77,12 +122,18 @@ export default async function AdminPeternakPage() {
                     {new Date(p.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="text-right">
-                    <DeletePeternakButton peternakId={p.id} namaPeternak={p.nama_lengkap} />
+                    <div className="flex items-center justify-end gap-2">
+                      <Link href={`/admin/peternak/${p.id}`} className="btn btn-ghost btn-sm">
+                        <Eye size={13} /> Detail Profil
+                      </Link>
+                      <DeletePeternakButton peternakId={p.id} namaPeternak={p.nama_lengkap} />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
         </div>
       ) : (
         <div className="card">

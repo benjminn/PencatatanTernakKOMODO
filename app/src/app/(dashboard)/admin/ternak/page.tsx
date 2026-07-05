@@ -16,6 +16,8 @@ interface SearchParams {
   jenis?: string
   status?: string
   page?: string
+  sortField?: string
+  sortOrder?: string
 }
 
 export default async function TernakPage({
@@ -27,18 +29,15 @@ export default async function TernakPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: pemilik } = await supabase
-    .from('pemilik').select('*').eq('id', user.id).single()
-  if (!pemilik) redirect('/login')
+  const { data: me } = await supabase
+    .from('pemilik').select('role').eq('id', user.id).single()
+  if (!me || (me.role !== 'admin' && me.role !== 'superadmin')) redirect('/dashboard')
 
   const params = await searchParams
   const currentPage = parseInt(params.page || '1', 10)
   const itemsPerPage = 15
 
   let query = supabase.from('v_ternak_lengkap').select('*', { count: 'exact' })
-  
-  // ALWAYS restrict to their own livestock for this page
-  query = query.eq('nik', pemilik.nik)
 
   // Filters
   if (params.search) {
@@ -54,9 +53,14 @@ export default async function TernakPage({
     query = query.eq('status', params.status as StatusTernak)
   }
 
+  // Handle Sorting
+  const sortField = params.sortField || 'created_at'
+  const sortOrder = params.sortOrder || 'desc'
+  const ascending = sortOrder === 'asc'
+
   // Add pagination
   query = query
-    .order('created_at', { ascending: false })
+    .order(sortField, { ascending })
     .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
 
   const { data: ternakList, count } = await query
@@ -72,9 +76,9 @@ export default async function TernakPage({
     <div className="space-y-4 max-w-full pb-8">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Ternak Saya</h1>
+          <h1 className="page-title">Kelola Semua Ternak</h1>
           <p className="page-subtitle">
-            Total {count ?? 0} ekor terdaftar atas nama Anda
+            Total {count ?? 0} ekor dari semua desa
           </p>
         </div>
         <Link href="/ternak/tambah" className="btn btn-primary btn-sm">
@@ -85,14 +89,14 @@ export default async function TernakPage({
 
       {/* Filter Bar */}
       <TernakFilterBar
-        isAdmin={false}
+        isAdmin={true}
         jenisList={jenisList ?? []}
         currentParams={params}
       />
 
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-        <TernakTable data={ternakList ?? []} isAdmin={false} />
+        <TernakTable data={ternakList ?? []} isAdmin={true} currentPage={currentPage} itemsPerPage={itemsPerPage} />
         <Pagination currentPage={currentPage} totalPages={totalPages} />
       </div>
     </div>

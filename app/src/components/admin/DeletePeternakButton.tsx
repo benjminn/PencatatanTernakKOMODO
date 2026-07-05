@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
+import { hapusPeternak } from '@/lib/actions/admin.actions'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 interface DeletePeternakButtonProps {
   peternakId: string
@@ -12,53 +14,32 @@ export default function DeletePeternakButton({ peternakId, namaPeternak }: Delet
   const [isPending, startTransition] = useTransition()
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const handleDelete = async () => {
-    // Import dynamically to avoid server/client mismatch
-    const { createClient } = await import('@/lib/supabase/client')
-    const supabase = createClient()
-
+  const handleDelete = () => {
     startTransition(async () => {
-      const { error } = await supabase
-        .from('pemilik')
-        .delete()
-        .eq('id', peternakId)
-
-      if (!error) {
-        window.location.reload()
-      }
+      await hapusPeternak(peternakId)
       setShowConfirm(false)
     })
   }
 
-  if (showConfirm) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Hapus?</span>
-        <button
-          onClick={handleDelete}
-          disabled={isPending}
-          className="btn btn-danger btn-sm"
-        >
-          Ya
-        </button>
-        <button
-          onClick={() => setShowConfirm(false)}
-          disabled={isPending}
-          className="btn btn-ghost btn-sm"
-        >
-          Tidak
-        </button>
-      </div>
-    )
-  }
-
   return (
-    <button
-      onClick={() => setShowConfirm(true)}
-      className="btn btn-danger btn-sm"
-      title={`Hapus ${namaPeternak} beserta semua ternaknya`}
-    >
-      <Trash2 size={13} />
-    </button>
+    <>
+      <button
+        onClick={() => setShowConfirm(true)}
+        className="btn btn-danger btn-sm"
+        title={`Hapus ${namaPeternak} beserta semua ternaknya`}
+      >
+        <Trash2 size={13} />
+      </button>
+
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title={`Hapus Peternak: ${namaPeternak}`}
+        description={`Apakah Anda yakin ingin menghapus peternak ${namaPeternak}? Seluruh data ternak miliknya (hidup, mati, dijual) juga akan ikut terhapus secara permanen.`}
+        onConfirm={handleDelete}
+        onCancel={() => setShowConfirm(false)}
+        isPending={isPending}
+        confirmText="Hapus Peternak"
+      />
+    </>
   )
 }

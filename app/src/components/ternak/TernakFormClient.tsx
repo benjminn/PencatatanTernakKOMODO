@@ -21,6 +21,7 @@ interface TernakFormClientProps {
     berat_badan: number | null
     status: StatusTernak
   }
+  adminIdPemilik?: string
 }
 
 const STATUS_OPTIONS = [
@@ -29,7 +30,7 @@ const STATUS_OPTIONS = [
   { value: 'dijual', label: 'Dijual', icon: DollarSign, activeClass: 'border-amber-500 bg-amber-50 text-amber-600 ring-2 ring-amber-500/20' },
 ] as const
 
-export default function TernakFormClient({ jenisList, mode, initialData }: TernakFormClientProps) {
+export default function TernakFormClient({ jenisList, mode, initialData, adminIdPemilik }: TernakFormClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -70,6 +71,8 @@ export default function TernakFormClient({ jenisList, mode, initialData }: Terna
           {error}
         </div>
       )}
+      
+      {adminIdPemilik && <input type="hidden" name="id_pemilik" value={adminIdPemilik} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
         {/* --- KOLOM KIRI: IDENTIFIKASI --- */}

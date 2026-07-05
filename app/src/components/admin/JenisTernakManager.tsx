@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { JenisTernak } from '@/types/database.types'
 import { Plus, Trash2, Save, X, Edit2, CheckSquare } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 const OPSI_KELAMIN_OPTIONS = ['Jantan', 'Betina', 'Campuran']
 
@@ -17,6 +18,8 @@ export default function JenisTernakManager({ initialList }: JenisTernakManagerPr
   const [showAddForm, setShowAddForm] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   // Add form state
   const [newNama, setNewNama] = useState('')
@@ -83,6 +86,25 @@ export default function JenisTernakManager({ initialList }: JenisTernakManagerPr
 
   const toggleOpsi = (opsi: string, current: string[], setter: (v: string[]) => void) => {
     setter(current.includes(opsi) ? current.filter((o) => o !== opsi) : [...current, opsi])
+  }
+
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return
+    setError(null)
+    startTransition(async () => {
+      const { error: dbError } = await supabase
+        .from('master_jenis_ternak')
+        .delete()
+        .eq('id', deleteId)
+
+      if (dbError) {
+        // Usually fails because of foreign key constraint (ternak still exists for this jenis)
+        setError('Gagal menghapus jenis ternak. Pastikan tidak ada data ternak yang menggunakan jenis ini.')
+      } else {
+        setList((prev) => prev.filter((j) => j.id !== deleteId))
+      }
+      setDeleteId(null)
+    })
   }
 
   return (
@@ -217,9 +239,19 @@ export default function JenisTernakManager({ initialList }: JenisTernakManagerPr
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => startEdit(jenis)} className="btn btn-ghost btn-sm" disabled={isPending}>
-                      <Edit2 size={13} /> Edit
-                    </button>
+                    <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => startEdit(jenis)} className="btn btn-ghost btn-sm" disabled={isPending}>
+                        <Edit2 size={13} /> Edit
+                      </button>
+                      <button 
+                        onClick={() => setDeleteId(jenis.id)} 
+                        className="btn btn-ghost btn-sm text-red-500 hover:text-red-700 hover:bg-red-50"
+                        disabled={isPending}
+                        title="Hapus Jenis Ternak"
+                      >
+                        <Trash2 size={13} /> Hapus
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>
@@ -227,6 +259,16 @@ export default function JenisTernakManager({ initialList }: JenisTernakManagerPr
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="Hapus Jenis Ternak"
+        description="Apakah Anda yakin ingin menghapus jenis ternak ini? Jika ada hewan ternak yang sudah didaftarkan menggunakan jenis ini, penghapusan akan dibatalkan otomatis oleh sistem."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteId(null)}
+        isPending={isPending}
+        confirmText="Hapus"
+      />
     </div>
   )
 }
