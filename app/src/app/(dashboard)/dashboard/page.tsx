@@ -54,10 +54,10 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6 max-w-full pb-8">
       {/* Welcome Banner */}
-      <div className="rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #166534, #15803d)', color: 'white' }}>
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <svg width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14h18"/><path d="M12 2v20"/><path d="M12 7l-5-5-5 5"/><path d="M12 17l5 5 5-5"/></svg>
-        </div>
+      <div className="rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #166534, #14532d)', color: 'white' }}>
+        {/* Decorative Circles */}
+        <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/10 blur-lg pointer-events-none" />
+        <div className="absolute -bottom-20 right-20 w-36 h-36 rounded-full bg-white/5 blur-md pointer-events-none" />
         <div className="relative z-10">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Halo, {pemilik.nama_lengkap.split(' ')[0]}! 👋
