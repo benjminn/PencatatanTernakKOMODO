@@ -47,7 +47,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-400 mt-6">
-          KKN UGM · Kecamatan Komodo, Manggarai Barat
+          KKN PPM UGM Menyapa Komodo · Kec. Komodo, Manggarai Barat
         </p>
       </div>
     </div>

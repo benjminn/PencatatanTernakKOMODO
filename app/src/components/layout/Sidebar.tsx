@@ -105,7 +105,7 @@ export default function Sidebar({ role, namaPemilik }: SidebarProps) {
       style={{ background: 'white', borderRight: '1px solid #e2e8f0' }}
     >
       {/* Brand */}
-      <div className="px-4 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+      <Link href="/" className="px-4 py-4 flex items-center gap-3 hover:opacity-85 transition-opacity block" style={{ borderBottom: '1px solid #f1f5f9' }}>
         <div className="w-10 h-10 relative shrink-0">
           <Image
             src="/logo/6311a9ed51648_300x300.webp"
@@ -122,7 +122,7 @@ export default function Sidebar({ role, namaPemilik }: SidebarProps) {
             Kec. Komodo
           </p>
         </div>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">

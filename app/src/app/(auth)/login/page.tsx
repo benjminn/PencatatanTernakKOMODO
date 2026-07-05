@@ -120,15 +120,6 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <div
-        className="mt-4 pt-4 text-center text-xs"
-        style={{
-          borderTop: '1px solid var(--color-bg-border)',
-          color: 'var(--color-text-disabled)',
-        }}
-      >
-        Admin Puskeswan? Gunakan kredensial admin Anda
-      </div>
     </div>
   )
 }

@@ -114,12 +114,15 @@ export default function Navbar({ pemilik }: NavbarProps) {
         style={{ background: 'white', borderBottom: '1px solid #e2e8f0' }}
       >
         {/* Mobile brand */}
-        <div className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5 hover:opacity-85 transition-opacity">
           <div className="w-8 h-8 relative shrink-0">
             <Image src="/logo/6311a9ed51648_300x300.webp" alt="Logo" fill className="object-contain" />
           </div>
-          <span className="font-bold text-sm text-gray-900">Pencatatan Ternak</span>
-        </div>
+          <div className="min-w-0">
+            <span className="font-bold text-sm text-gray-900 leading-tight block">Pencatatan Ternak</span>
+            <span className="text-[10px] text-gray-500 leading-none block mt-0.5">Kec. Komodo</span>
+          </div>
+        </Link>
 
         {/* Right side: Mobile toggle */}
         <button
