@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   Menu, X, LayoutDashboard, List, PlusCircle, Users, Tag,
   LogOut, ShieldCheck, UserCircle, ShieldAlert, ChevronRight,
-  BarChart3, MapPin
+  BarChart3, MapPin, CreditCard
 } from 'lucide-react'
 import { logout } from '@/lib/actions/auth.actions'
 import type { Pemilik } from '@/types/database.types'
@@ -38,7 +38,7 @@ const NAV_CONFIGS = {
         { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
         { href: '/ternak', label: 'Ternak Saya', icon: List },
         { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
-        { href: '/profil', label: 'Profil Saya', icon: UserCircle },
+        { href: '/kartu-ternak', label: 'Kartu Ternak', icon: CreditCard },
       ]
     }
   ],
@@ -60,6 +60,7 @@ const NAV_CONFIGS = {
         { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
         { href: '/ternak', label: 'Ternak Saya', icon: List },
         { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+        { href: '/kartu-ternak', label: 'Cetak Kartu', icon: CreditCard },
       ]
     }
   ],
@@ -82,6 +83,7 @@ const NAV_CONFIGS = {
         { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
         { href: '/ternak', label: 'Ternak Saya', icon: List },
         { href: '/ternak/tambah', label: 'Tambah Ternak', icon: PlusCircle },
+        { href: '/kartu-ternak', label: 'Cetak Kartu', icon: CreditCard },
       ]
     }
   ],

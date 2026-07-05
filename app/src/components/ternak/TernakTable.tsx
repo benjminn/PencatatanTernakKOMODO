@@ -156,8 +156,7 @@ export default function TernakTable({
           return (
             <div
               key={t.id}
-              onClick={() => router.push(`/ternak/${t.id}/edit`)}
-              className="mobile-card block hover:border-green-300 transition-colors cursor-pointer"
+              className="mobile-card block transition-colors"
             >
               <div className="flex items-start justify-between mb-2">
                 <div>
@@ -209,13 +208,21 @@ export default function TernakTable({
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className="text-gray-400">{formatDateShort(t.updated_at)}</span>
-                  <button 
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteId(t.id); }} 
-                    className="text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold"
-                    disabled={isPending}
-                  >
-                    <Trash2 size={12} /> Hapus
-                  </button>
+                  <div className="flex items-center gap-3 mt-1">
+                    <Link 
+                      href={`/ternak/${t.id}/edit`} 
+                      className="text-blue-500 hover:text-blue-700 flex items-center gap-1 font-semibold"
+                    >
+                      <Edit2 size={12} /> Edit
+                    </Link>
+                    <button 
+                      onClick={(e) => { e.preventDefault(); setDeleteId(t.id); }} 
+                      className="text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold"
+                      disabled={isPending}
+                    >
+                      <Trash2 size={12} /> Hapus
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
