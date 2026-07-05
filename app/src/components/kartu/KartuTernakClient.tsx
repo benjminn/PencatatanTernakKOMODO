@@ -188,10 +188,10 @@ export default function KartuTernakClient({ pemilik, ternakList, isAdmin, pemili
         )}
 
         {/* MAIN CARD AREA */}
-        <div className="flex-1 w-full min-w-0">
+        <div className="flex-1 w-full min-w-0 overflow-x-auto pb-4">
 
           {/* === THE CARD (printable area) === */}
-          <div ref={kartuRef} className={`kartu-ternak-printable bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden w-full max-w-4xl ${!isAdmin ? 'mx-auto' : ''}`}>
+          <div ref={kartuRef} className={`kartu-ternak-printable bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden w-full min-w-[800px] max-w-4xl ${!isAdmin ? 'mx-auto' : ''}`}>
         
         {/* ── HEADER ── */}
         <div className="bg-gradient-to-r from-green-800 to-green-700 text-white px-6 sm:px-8 py-5">
