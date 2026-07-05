@@ -6,6 +6,68 @@ import TernakFormClient from '@/components/ternak/TernakFormClient'
 import { tambahTernakBulk } from '@/lib/actions/ternak.actions'
 import { UploadCloud, FileText, Loader2, AlertCircle, CheckCircle, Download } from 'lucide-react'
 import type { JenisTernak, Pemilik } from '@/types/database.types'
+import { useRef, useEffect } from 'react'
+
+// Helper Custom Combobox Component
+function PeternakCombobox({ pemilikList, onSelect, defaultValue = '' }: { pemilikList: any[], onSelect: (id: string) => void, defaultValue?: string }) {
+  const [query, setQuery] = useState(defaultValue)
+  const [isOpen, setIsOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  const filtered = pemilikList.filter(p => 
+    `${p.nama_lengkap} ${p.nik} ${p.alamat_desa}`.toLowerCase().includes(query.toLowerCase())
+  ).slice(0, 50)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative w-full" ref={wrapperRef}>
+      <input
+        type="text"
+        className="form-input bg-white border-green-300 focus:border-green-500 focus:ring-green-500/20 w-full placeholder:text-gray-400 font-medium"
+        placeholder="-- Ketik nama atau NIK peternak --"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          setIsOpen(true)
+          if (e.target.value === '') onSelect('')
+        }}
+        onFocus={() => {
+          setQuery('')
+          setIsOpen(true)
+        }}
+      />
+      {isOpen && (
+        <ul className="absolute z-50 w-full bg-white mt-2 rounded-xl shadow-xl border border-gray-100 max-h-72 overflow-y-auto">
+          {filtered.length > 0 ? filtered.map(p => (
+            <li 
+              key={p.id}
+              className="px-4 py-3 hover:bg-green-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors"
+              onClick={() => {
+                setQuery(`${p.nama_lengkap} - Desa ${p.alamat_desa}`)
+                setIsOpen(false)
+                onSelect(p.id)
+              }}
+            >
+              <div className="font-bold text-gray-900">{p.nama_lengkap}</div>
+              <div className="text-xs text-gray-500 mt-0.5"><span className="font-mono">{p.nik}</span> • Desa {p.alamat_desa}</div>
+            </li>
+          )) : (
+            <li className="px-4 py-4 text-sm text-gray-500 text-center italic">Tidak ada hasil ditemukan.</li>
+          )}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 interface TernakFormAdminProps {
   jenisList: JenisTernak[]
@@ -71,6 +133,21 @@ export default function TernakFormAdmin({ jenisList, pemilikList }: TernakFormAd
           if (!pemilikObj) rowError = 'NIK Peternak tidak ditemukan'
           else if (!jenisObj) rowError = `Jenis hewan "${namaJenis}" tidak ada`
 
+          const rawFase = (rowData['fase'] || '').trim()
+          let normalizedFase = rawFase
+          const lowerFase = rawFase.toLowerCase()
+          if (lowerFase.includes('anak')) normalizedFase = 'Anakan'
+          else if (lowerFase.includes('muda')) normalizedFase = 'Muda'
+          else if (lowerFase.includes('induk')) normalizedFase = 'Indukan'
+          else if (lowerFase.includes('pejantan') || lowerFase.includes('jantan')) normalizedFase = 'Pejantan'
+          else if (lowerFase.includes('gemuk')) normalizedFase = 'Penggemukan'
+
+          const rawKelamin = (rowData['kelamin'] || rowData['jenis_kelamin'] || '').trim()
+          let normalizedKelamin = rawKelamin
+          const lowerKelamin = rawKelamin.toLowerCase()
+          if (lowerKelamin.includes('betin') || lowerKelamin === 'b' || lowerKelamin === 'p') normalizedKelamin = 'Betina'
+          else if (lowerKelamin.includes('jantan') || lowerKelamin === 'j' || lowerKelamin === 'l') normalizedKelamin = 'Jantan'
+
           parsedRows.push({
             id_pemilik: pemilikObj?.id || '',
             nik: nik,
@@ -78,8 +155,8 @@ export default function TernakFormAdmin({ jenisList, pemilikList }: TernakFormAd
             jenis_penanda: rowData['jenis penanda'] || rowData['jenis_penanda'] || 'Eartag',
             identitas_penanda: rowData['eartag'] || rowData['kode eartag'] || rowData['identitas_penanda'] || '',
             id_jenis: jenisObj?.id.toString() || '',
-            fase: rowData['fase'] || '',
-            jenis_kelamin: rowData['kelamin'] || rowData['jenis_kelamin'] || '',
+            fase: normalizedFase,
+            jenis_kelamin: normalizedKelamin,
             umur_tahun: rowData['umur tahun'] || rowData['umur_tahun'] || '0',
             umur_bulan: rowData['umur bulan'] || rowData['umur_bulan'] || '0',
             berat_badan: rowData['berat'] || rowData['berat badan'] || rowData['berat_badan'] || '0',
@@ -199,16 +276,12 @@ export default function TernakFormAdmin({ jenisList, pemilikList }: TernakFormAd
             <label className="form-label text-green-900 font-bold mb-3 block">
               1. Pilih Pemilik / Peternak Tujuan <span className="text-red-500">*</span>
             </label>
-            <select 
-              className="form-input bg-white border-green-300 focus:border-green-500 focus:ring-green-500/20"
-              value={selectedPemilik}
-              onChange={(e) => setSelectedPemilik(e.target.value)}
-            >
-              <option value="">-- Ketik atau pilih nama peternak --</option>
-              {pemilikList.map(p => (
-                <option key={p.id} value={p.id}>{p.nama_lengkap} (NIK: {p.nik}) - Desa {p.alamat_desa}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <PeternakCombobox 
+                pemilikList={pemilikList} 
+                onSelect={(id) => setSelectedPemilik(id)} 
+              />
+            </div>
           </div>
           
           <div className={`transition-opacity duration-300 ${!selectedPemilik ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
@@ -303,10 +376,30 @@ export default function TernakFormAdmin({ jenisList, pemilikList }: TernakFormAd
                           <input type="text" className={`form-input py-1 px-2 text-xs w-28 ${row.error?.includes('Jenis') ? 'border-red-500 bg-red-50' : ''}`} value={row.nama_jenis} onChange={(e) => handleRowChange(i, 'nama_jenis', e.target.value)} />
                         </td>
                         <td className="px-3 py-2">
-                          <input type="text" className="form-input py-1 px-2 text-xs w-28" value={row.fase} onChange={(e) => handleRowChange(i, 'fase', e.target.value)} />
+                          <select 
+                            className="form-input py-1 px-2 text-xs w-28 bg-white" 
+                            value={row.fase} 
+                            onChange={(e) => handleRowChange(i, 'fase', e.target.value)}
+                          >
+                            <option value="">-- Pilih --</option>
+                            <option value="Anakan">Anakan</option>
+                            <option value="Muda">Muda</option>
+                            <option value="Indukan">Indukan</option>
+                            <option value="Pejantan">Pejantan</option>
+                            <option value="Penggemukan">Penggemukan</option>
+                            <option value="Lainnya">Lainnya</option>
+                          </select>
                         </td>
                         <td className="px-3 py-2">
-                          <input type="text" className="form-input py-1 px-2 text-xs w-24" value={row.jenis_kelamin} onChange={(e) => handleRowChange(i, 'jenis_kelamin', e.target.value)} />
+                          <select 
+                            className="form-input py-1 px-2 text-xs w-24 bg-white" 
+                            value={row.jenis_kelamin} 
+                            onChange={(e) => handleRowChange(i, 'jenis_kelamin', e.target.value)}
+                          >
+                            <option value="">-- Pilih --</option>
+                            <option value="Jantan">Jantan</option>
+                            <option value="Betina">Betina</option>
+                          </select>
                         </td>
                         <td className="px-3 py-2">
                           <input type="number" className="form-input py-1 px-2 text-xs w-20" value={row.umur_tahun} onChange={(e) => handleRowChange(i, 'umur_tahun', e.target.value)} />

@@ -133,15 +133,13 @@ export default function TernakTable({
                       <Link href={`/ternak/${t.id}/edit`} className="btn btn-ghost btn-sm">
                         <Edit2 size={13} /> Edit
                       </Link>
-                      {isAdmin && (
-                        <button 
-                          onClick={() => setDeleteId(t.id)} 
-                          className="btn btn-ghost btn-sm text-red-500 hover:text-red-700 hover:bg-red-50"
-                          disabled={isPending}
-                        >
-                          <Trash2 size={13} /> Hapus
-                        </button>
-                      )}
+                      <button 
+                        onClick={() => setDeleteId(t.id)} 
+                        className="btn btn-ghost btn-sm text-red-500 hover:text-red-700 hover:bg-red-50"
+                        disabled={isPending}
+                      >
+                        <Trash2 size={13} /> Hapus
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -198,26 +196,28 @@ export default function TernakTable({
                   <p className="text-gray-700">{formatWeight(t.berat_badan)}</p>
                 </div>
               </div>
-              {isAdmin && (
-                <div className="mt-3 pt-3 flex items-center justify-between text-xs" style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <div className="flex flex-col">
-                    <span className="text-gray-500 mb-1">Pemilik:</span>
-                    <Link href={`/admin/peternak/${t.id_pemilik}`} className="font-medium text-blue-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                      {t.nama_lengkap}
-                    </Link>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="text-gray-400">{formatDateShort(t.updated_at)}</span>
-                    <button 
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteId(t.id); }} 
-                      className="text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold"
-                      disabled={isPending}
-                    >
-                      <Trash2 size={12} /> Hapus
-                    </button>
-                  </div>
+              <div className="mt-3 pt-3 flex items-center justify-between text-xs" style={{ borderTop: '1px solid #f1f5f9' }}>
+                <div className="flex flex-col">
+                  {isAdmin && (
+                    <>
+                      <span className="text-gray-500 mb-1">Pemilik:</span>
+                      <Link href={`/admin/peternak/${t.id_pemilik}`} className="font-medium text-blue-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                        {t.nama_lengkap}
+                      </Link>
+                    </>
+                  )}
                 </div>
-              )}
+                <div className="flex flex-col items-end gap-2">
+                  <span className="text-gray-400">{formatDateShort(t.updated_at)}</span>
+                  <button 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteId(t.id); }} 
+                    className="text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold"
+                    disabled={isPending}
+                  >
+                    <Trash2 size={12} /> Hapus
+                  </button>
+                </div>
+              </div>
             </div>
           )
         })}

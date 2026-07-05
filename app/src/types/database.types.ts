@@ -43,8 +43,7 @@ export interface Database {
           id: string
           nik: string
           nama_lengkap: string
-          alamat_kec: string
-          alamat_desa: string
+          id_desa: string
           alamat_detail: string
           role: 'peternak' | 'admin' | 'superadmin'
           created_at: string
@@ -53,8 +52,7 @@ export interface Database {
           id: string
           nik: string
           nama_lengkap: string
-          alamat_kec: string
-          alamat_desa: string
+          id_desa: string
           alamat_detail: string
           role?: 'peternak' | 'admin' | 'superadmin'
           created_at?: string
@@ -63,8 +61,7 @@ export interface Database {
           id?: string
           nik?: string
           nama_lengkap?: string
-          alamat_kec?: string
-          alamat_desa?: string
+          id_desa?: string
           alamat_detail?: string
           role?: 'peternak' | 'admin' | 'superadmin'
           created_at?: string

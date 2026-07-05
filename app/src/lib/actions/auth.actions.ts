@@ -81,8 +81,7 @@ export async function register(formData: FormData) {
     nama_lengkap: formData.get('nama_lengkap') as string,
     password: formData.get('password') as string,
     confirm_password: formData.get('confirm_password') as string,
-    alamat_kec: formData.get('alamat_kec') as string,
-    alamat_desa: formData.get('alamat_desa') as string,
+    id_desa: formData.get('id_desa') as string,
     alamat_detail: formData.get('alamat_detail') as string,
   }
 
@@ -103,8 +102,7 @@ export async function register(formData: FormData) {
   const { data, error } = await supabaseSignUp(email, parsed.data.password, {
     nik: parsed.data.nik,
     nama_lengkap: parsed.data.nama_lengkap,
-    alamat_kec: parsed.data.alamat_kec,
-    alamat_desa: parsed.data.alamat_desa,
+    id_desa: parsed.data.id_desa,
     alamat_detail: parsed.data.alamat_detail,
     role: 'peternak',
   })
@@ -163,8 +161,7 @@ export async function adminRegisterPeternak(formData: FormData) {
     nama_lengkap: formData.get('nama_lengkap') as string,
     password: formData.get('password') as string,
     confirm_password: formData.get('confirm_password') as string,
-    alamat_kec: formData.get('alamat_kec') as string,
-    alamat_desa: formData.get('alamat_desa') as string,
+    id_desa: formData.get('id_desa') as string,
     alamat_detail: formData.get('alamat_detail') as string,
   }
 
@@ -180,8 +177,7 @@ export async function adminRegisterPeternak(formData: FormData) {
   const { error } = await supabaseSignUp(email, parsed.data.password, {
     nik: parsed.data.nik,
     nama_lengkap: parsed.data.nama_lengkap,
-    alamat_kec: parsed.data.alamat_kec,
-    alamat_desa: parsed.data.alamat_desa,
+    id_desa: parsed.data.id_desa,
     alamat_detail: parsed.data.alamat_detail,
     role: 'peternak',
   })

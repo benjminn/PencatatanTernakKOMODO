@@ -326,7 +326,7 @@
 @media print {
   /* Hide everything except the printable card */
   body { background: white !important; }
-  aside, nav, header, .print\\:hidden, .sidebar-link, button {
+  aside, nav, header, .sidebar-link, button {
     display: none !important;
   }
   main {

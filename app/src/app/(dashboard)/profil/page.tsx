@@ -15,7 +15,7 @@ export default async function ProfilPage() {
 
   const { data: pemilik } = await supabase
     .from('pemilik')
-    .select('*')
+    .select('*, master_desa(nama_desa, kecamatan)')
     .eq('id', user.id)
     .single()
 
@@ -50,7 +50,7 @@ export default async function ProfilPage() {
             </div>
             <div className="flex items-center gap-1.5 text-sm text-gray-600 mt-1">
               <MapPin size={14} className="text-gray-400" />
-              Desa {pemilik.alamat_desa}, Kec. {pemilik.alamat_kec}
+              Desa {pemilik.master_desa?.nama_desa || '...'}, Kec. {pemilik.master_desa?.kecamatan || '...'}
             </div>
             <div className="flex items-center gap-1.5 text-sm text-gray-600 mt-1">
               <Calendar size={14} className="text-gray-400" />

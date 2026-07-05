@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { adminRegisterPeternak } from '@/lib/actions/auth.actions'
-import { KECAMATAN_LIST, getDesaByKecamatan } from '@/lib/wilayah'
+import { getWilayahData } from '@/lib/actions/wilayah.actions'
 import { Loader2, UserPlus, CheckCircle } from 'lucide-react'
 
 export default function AdminRegisterFormClient() {
@@ -13,7 +13,17 @@ export default function AdminRegisterFormClient() {
   const [success, setSuccess] = useState(false)
   
   const [kecamatan, setKecamatan] = useState('')
-  const desaList = getDesaByKecamatan(kecamatan)
+  const [kecamatanList, setKecamatanList] = useState<string[]>([])
+  const [wilayahData, setWilayahData] = useState<Record<string, {id: string, nama_desa: string}[]>>({})
+
+  useEffect(() => {
+    getWilayahData().then(res => {
+      setKecamatanList(res.kecamatanList)
+      setWilayahData(res.wilayahData)
+    })
+  }, [])
+
+  const desaList = wilayahData[kecamatan] || []
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -75,21 +85,21 @@ export default function AdminRegisterFormClient() {
         <div>
           <label htmlFor="admin-kec" className="form-label">Kecamatan <span className="text-red-500">*</span></label>
           <select
-            id="admin-kec" name="alamat_kec" className="form-input" required disabled={isPending}
+            id="admin-kec" className="form-input" required disabled={isPending}
             value={kecamatan} onChange={(e) => setKecamatan(e.target.value)}
           >
-            <option value="">Pilih kecamatan...</option>
-            {KECAMATAN_LIST.map((k) => <option key={k} value={k}>{k}</option>)}
+            <option value="" disabled>-- Pilih Kecamatan --</option>
+            {kecamatanList.map((k) => <option key={k} value={k}>{k}</option>)}
           </select>
         </div>
 
         <div>
           <label htmlFor="admin-desa" className="form-label">Desa <span className="text-red-500">*</span></label>
           <select
-            id="admin-desa" name="alamat_desa" className="form-input" required disabled={!kecamatan || isPending}
+            id="admin-desa" name="id_desa" className="form-input" required disabled={!kecamatan || isPending}
           >
             <option value="">{kecamatan ? 'Pilih desa...' : 'Pilih kecamatan dulu'}</option>
-            {desaList.map((d) => <option key={d} value={d}>{d}</option>)}
+            {desaList.map((d) => <option key={d.id} value={d.id}>{d.nama_desa}</option>)}
           </select>
         </div>
       </div>

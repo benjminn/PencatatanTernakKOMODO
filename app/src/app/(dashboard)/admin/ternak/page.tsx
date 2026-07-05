@@ -18,6 +18,7 @@ interface SearchParams {
   page?: string
   sortField?: string
   sortOrder?: string
+  limit?: string
 }
 
 export default async function TernakPage({
@@ -35,7 +36,7 @@ export default async function TernakPage({
 
   const params = await searchParams
   const currentPage = parseInt(params.page || '1', 10)
-  const itemsPerPage = 15
+  const itemsPerPage = parseInt(params.limit || '15', 10)
 
   let query = supabase.from('v_ternak_lengkap').select('*', { count: 'exact' })
 

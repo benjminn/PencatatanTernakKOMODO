@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
 
   const { data: pemilik } = await supabase
-    .from('pemilik').select('*').eq('id', user.id).single()
+    .from('pemilik').select('*, master_desa(nama_desa, kecamatan)').eq('id', user.id).single()
 
   if (!pemilik) {
     return (
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Halo, {pemilik.nama_lengkap.split(' ')[0]}! 👋
           </h1>
-          <p className="text-sm sm:text-base mt-2 text-green-100 max-w-lg leading-relaxed">
+          <p className="text-sm sm:text-base mt-2 text-green-100 max-w-2xl leading-relaxed">
             Selamat datang di Dashboard Peternak. Pantau kondisi ternak Anda, cetak kartu kepemilikan, dan kelola data ternak dengan mudah.
           </p>
         </div>
@@ -77,10 +77,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* Profil & Stats Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Kolom Kiri: Profil & Stats */}
-        <div className="lg:col-span-4 flex flex-col gap-6 h-full">
+        <div className="lg:col-span-3 flex flex-col gap-6">
           {/* Profil */}
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden flex-1 flex flex-col">
             <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
@@ -93,20 +93,22 @@ export default async function DashboardPage() {
                 Edit
               </Link>
             </div>
-            <div className="space-y-4 text-sm mt-4">
+            <div className="space-y-5 text-sm mt-5 flex-1">
               <div>
-                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Nama Lengkap</p>
-                <p className="font-semibold text-gray-900">{pemilik.nama_lengkap}</p>
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Nama Lengkap</p>
+                <p className="text-lg font-bold text-gray-900 leading-snug">{pemilik.nama_lengkap}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">NIK</p>
-                <p className="font-mono text-gray-800 font-medium">{pemilik.nik}</p>
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">NIK</p>
+                <p className="text-base font-mono text-gray-900 font-semibold tracking-wider">{pemilik.nik}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Alamat</p>
-                <p className="text-gray-700 leading-snug">
-                  {pemilik.alamat_detail}<br/>
-                  <span className="text-gray-500 text-xs">Desa {pemilik.alamat_desa}, Kec. {pemilik.alamat_kec}</span>
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Alamat</p>
+                <p className="text-base text-gray-850 font-medium leading-relaxed">
+                  {pemilik.alamat_detail}
+                </p>
+                <p className="text-gray-500 text-sm mt-1 font-medium">
+                  Desa {pemilik.master_desa?.nama_desa || '...'}, Kec. {pemilik.master_desa?.kecamatan || '...'}
                 </p>
               </div>
             </div>
@@ -152,17 +154,27 @@ export default async function DashboardPage() {
         </div>
 
         {/* Kolom Kanan: Tabel Ternak */}
-        <div className="lg:col-span-8 flex flex-col h-full">
+        <div className="lg:col-span-9 flex flex-col">
           {/* Tabel Ternak Terkini */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col h-full overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
                 <h2 className="font-bold text-gray-800 text-lg">Daftar Ternak</h2>
-                <p className="text-xs text-gray-500 mt-0.5">Menampilkan semua ternak Anda</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {(ternakList?.length ?? 0) > 5 ? "Menampilkan 5 ternak terbaru Anda" : "Menampilkan semua ternak Anda"}
+                </p>
               </div>
             </div>
             <div className="p-5 overflow-x-auto flex-1">
-              <TernakTable data={ternakList ?? []} isAdmin={false} hideKelamin={true} />
+              <TernakTable data={(ternakList ?? []).slice(0, 5)} isAdmin={false} hideKelamin={true} />
+              
+              {(ternakList?.length ?? 0) > 5 && (
+                <div className="mt-4 text-center pt-2">
+                  <Link href="/ternak" className="inline-flex items-center justify-center text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition-colors">
+                    Lihat Semua {ternakList?.length} Ternak &rarr;
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

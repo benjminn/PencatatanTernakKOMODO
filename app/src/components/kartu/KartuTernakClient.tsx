@@ -1,15 +1,80 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Printer, Download, Loader2 } from 'lucide-react'
 import type { Pemilik, TernakLengkap } from '@/types/database.types'
 
 interface KartuTernakClientProps {
   pemilik: Pemilik
   ternakList: TernakLengkap[]
+  isAdmin?: boolean
+  pemilikList?: Pemilik[]
 }
 
-export default function KartuTernakClient({ pemilik, ternakList }: KartuTernakClientProps) {
+import { useRouter } from 'next/navigation'
+
+// Helper Custom Combobox Component
+function PeternakCombobox({ pemilikList, onSelect, defaultValue }: { pemilikList: any[], onSelect: (nik: string) => void, defaultValue: string }) {
+  const [query, setQuery] = useState(defaultValue)
+  const [isOpen, setIsOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  const filtered = pemilikList.filter(p => 
+    `${p.nama_lengkap} ${p.nik} ${p.alamat_desa}`.toLowerCase().includes(query.toLowerCase())
+  ).slice(0, 50)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative w-full" ref={wrapperRef}>
+      <input
+        type="text"
+        className="form-input bg-white border-green-300 focus:border-green-500 focus:ring-green-500/20 w-full placeholder:text-gray-400 font-medium"
+        placeholder="Ketik nama atau NIK..."
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          setIsOpen(true)
+        }}
+        onFocus={() => {
+          setQuery('')
+          setIsOpen(true)
+        }}
+      />
+      {isOpen && (
+        <ul className="absolute z-50 w-full bg-white mt-2 rounded-xl shadow-xl border border-gray-100 max-h-72 overflow-y-auto">
+          {filtered.length > 0 ? filtered.map(p => (
+            <li 
+              key={p.id}
+              className="px-4 py-3 hover:bg-green-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors"
+              onClick={() => {
+                setQuery(`${p.nama_lengkap} - Desa ${p.alamat_desa}`)
+                setIsOpen(false)
+                onSelect(p.nik)
+              }}
+            >
+              <div className="font-bold text-gray-900">{p.nama_lengkap}</div>
+              <div className="text-xs text-gray-500 mt-0.5"><span className="font-mono">{p.nik}</span> • Desa {p.alamat_desa}</div>
+            </li>
+          )) : (
+            <li className="px-4 py-4 text-sm text-gray-500 text-center italic">Tidak ada hasil ditemukan.</li>
+          )}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+export default function KartuTernakClient({ pemilik, ternakList, isAdmin, pemilikList }: KartuTernakClientProps) {
+  const router = useRouter()
   const kartuRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const tanggalCetak = new Date().toLocaleDateString('id-ID', {
@@ -67,9 +132,9 @@ export default function KartuTernakClient({ pemilik, ternakList }: KartuTernakCl
   }
 
   return (
-    <div className="pb-8">
+    <div className="pb-8 w-full">
       {/* ACTION BAR — hidden on print */}
-      <div className="print:hidden mb-6">
+      <div className="print:hidden mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="page-title">Kartu Kepemilikan Ternak</h1>
@@ -95,8 +160,34 @@ export default function KartuTernakClient({ pemilik, ternakList }: KartuTernakCl
         )}
       </div>
 
-      {/* === THE CARD (printable area) === */}
-      <div ref={kartuRef} className="kartu-ternak-printable bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden max-w-5xl mx-auto">
+      <div className="flex flex-col xl:flex-row gap-8 items-start">
+        {/* ADMIN SEARCH BAR - SIDEBAR */}
+        {isAdmin && pemilikList && (
+          <div className="w-full xl:w-80 shrink-0 print:hidden xl:sticky xl:top-8 bg-gradient-to-br from-green-50 to-emerald-50/50 p-5 rounded-2xl border border-green-200 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-green-900 font-extrabold text-lg flex items-center gap-2">
+                Pilih Peternak
+              </h2>
+              <p className="text-xs text-green-700/80 mt-1">Cari peternak untuk mencetak kartu miliknya (Khusus Admin)</p>
+            </div>
+            
+            <PeternakCombobox 
+              pemilikList={pemilikList} 
+              defaultValue={`${pemilik.nama_lengkap} - Desa ${pemilik.alamat_desa}`}
+              onSelect={(nik) => {
+                if (nik !== pemilik.nik) {
+                  router.push(`/kartu-ternak?nik=${nik}`)
+                }
+              }} 
+            />
+          </div>
+        )}
+
+        {/* MAIN CARD AREA */}
+        <div className="flex-1 w-full min-w-0">
+
+          {/* === THE CARD (printable area) === */}
+          <div ref={kartuRef} className={`kartu-ternak-printable bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden w-full max-w-4xl ${!isAdmin ? 'mx-auto' : ''}`}>
         
         {/* ── HEADER ── */}
         <div className="bg-gradient-to-r from-green-800 to-green-700 text-white px-6 sm:px-8 py-5">
@@ -205,6 +296,8 @@ export default function KartuTernakClient({ pemilik, ternakList }: KartuTernakCl
               <div className="border-b border-gray-400 w-40 mx-auto mb-1"></div>
               <p className="text-xs text-gray-500">NIP. ................................</p>
             </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>

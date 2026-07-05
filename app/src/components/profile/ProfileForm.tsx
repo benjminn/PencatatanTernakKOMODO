@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateProfile } from '@/lib/actions/profile.actions'
-import { KECAMATAN_LIST, getDesaByKecamatan } from '@/lib/wilayah'
+import { getWilayahData } from '@/lib/actions/wilayah.actions'
 import type { Pemilik } from '@/types/database.types'
 import { Loader2, Save, CheckCircle } from 'lucide-react'
 
@@ -11,12 +12,34 @@ interface ProfileFormProps {
 }
 
 export default function ProfileForm({ pemilik }: ProfileFormProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [kecamatan, setKecamatan] = useState(pemilik.alamat_kec)
+  
+  const [kecamatan, setKecamatan] = useState('')
+  const [desa, setDesa] = useState(pemilik.id_desa || '')
+  const [kecamatanList, setKecamatanList] = useState<string[]>([])
+  const [wilayahData, setWilayahData] = useState<Record<string, {id: string, nama_desa: string}[]>>({})
 
-  const desaList = getDesaByKecamatan(kecamatan)
+  useEffect(() => {
+    getWilayahData().then(res => {
+      setKecamatanList(res.kecamatanList)
+      setWilayahData(res.wilayahData)
+      
+      // Find the kecamatan for the existing id_desa
+      if (pemilik.id_desa && !kecamatan) {
+        for (const [kec, desaArr] of Object.entries(res.wilayahData)) {
+          if (desaArr.some(d => d.id === pemilik.id_desa)) {
+            setKecamatan(kec)
+            break
+          }
+        }
+      }
+    })
+  }, [pemilik.id_desa])
+
+  const desaList = wilayahData[kecamatan] || []
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -76,12 +99,15 @@ export default function ProfileForm({ pemilik }: ProfileFormProps) {
             Kecamatan <span className="text-red-500">*</span>
           </label>
           <select
-            id="alamat_kec" name="alamat_kec" className="form-input"
+            id="alamat_kec" className="form-input"
             required disabled={isPending}
-            value={kecamatan} onChange={(e) => setKecamatan(e.target.value)}
+            value={kecamatan} onChange={(e) => {
+              setKecamatan(e.target.value)
+              setDesa('')
+            }}
           >
-            <option value="">Pilih kecamatan...</option>
-            {KECAMATAN_LIST.map((kec) => (<option key={kec} value={kec}>{kec}</option>))}
+            <option value="" disabled>-- Pilih Kecamatan --</option>
+            {kecamatanList.map((kec) => (<option key={kec} value={kec}>{kec}</option>))}
           </select>
         </div>
         <div>
@@ -89,12 +115,12 @@ export default function ProfileForm({ pemilik }: ProfileFormProps) {
             Desa <span className="text-red-500">*</span>
           </label>
           <select
-            id="alamat_desa" name="alamat_desa" className="form-input"
+            id="id_desa" name="id_desa" className="form-input"
             required disabled={!kecamatan || isPending}
-            defaultValue={pemilik.alamat_desa}
+            value={desa} onChange={(e) => setDesa(e.target.value)}
           >
             <option value="">{kecamatan ? 'Pilih desa...' : 'Pilih kecamatan dulu'}</option>
-            {desaList.map((d) => (<option key={d} value={d}>{d}</option>))}
+            {desaList.map((d) => (<option key={d.id} value={d.id}>{d.nama_desa}</option>))}
           </select>
         </div>
       </div>

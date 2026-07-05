@@ -19,8 +19,13 @@ export default async function AdminDashboardPage() {
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) redirect('/dashboard')
 
   // Fetch Pemilik List (Peternak)
-  const { data: peternakList } = await supabase
-    .from('pemilik').select('*').eq('role', 'peternak')
+  const { data: rawPeternakList } = await supabase
+    .from('pemilik').select('*, master_desa(nama_desa)').eq('role', 'peternak')
+    
+  const peternakList = rawPeternakList?.map(p => ({
+    ...p,
+    alamat_desa: p.master_desa?.nama_desa || '...'
+  })) || []
     
   // Fetch Admin Count
   const { count: totalAdmin } = await supabase

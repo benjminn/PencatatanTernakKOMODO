@@ -12,8 +12,7 @@ export async function updateProfile(formData: FormData) {
 
   const rawData = {
     nama_lengkap: formData.get('nama_lengkap') as string,
-    alamat_kec: formData.get('alamat_kec') as string,
-    alamat_desa: formData.get('alamat_desa') as string,
+    id_desa: formData.get('id_desa') as string,
     alamat_detail: formData.get('alamat_detail') as string,
   }
 
@@ -26,8 +25,7 @@ export async function updateProfile(formData: FormData) {
     .from('pemilik')
     .update({
       nama_lengkap: parsed.data.nama_lengkap,
-      alamat_kec: parsed.data.alamat_kec,
-      alamat_desa: parsed.data.alamat_desa,
+      id_desa: parsed.data.id_desa,
       alamat_detail: parsed.data.alamat_detail,
     })
     .eq('id', user.id)

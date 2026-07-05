@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updatePeternakAsAdmin } from '@/lib/actions/admin.actions'
+import { getWilayahData } from '@/lib/actions/wilayah.actions'
 import { Loader2, Save } from 'lucide-react'
 import type { Pemilik } from '@/types/database.types'
 
@@ -14,6 +15,29 @@ export default function AdminPeternakFormClient({ initialData }: AdminPeternakFo
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  const [kecamatan, setKecamatan] = useState('')
+  const [desa, setDesa] = useState(initialData.id_desa || '')
+  const [kecamatanList, setKecamatanList] = useState<string[]>([])
+  const [wilayahData, setWilayahData] = useState<Record<string, {id: string, nama_desa: string}[]>>({})
+
+  useEffect(() => {
+    getWilayahData().then(res => {
+      setKecamatanList(res.kecamatanList)
+      setWilayahData(res.wilayahData)
+
+      if (initialData.id_desa && !kecamatan) {
+        for (const [kec, desaArr] of Object.entries(res.wilayahData)) {
+          if (desaArr.some(d => d.id === initialData.id_desa)) {
+            setKecamatan(kec)
+            break
+          }
+        }
+      }
+    })
+  }, [initialData.id_desa])
+
+  const desaList = wilayahData[kecamatan] || []
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -65,24 +89,39 @@ export default function AdminPeternakFormClient({ initialData }: AdminPeternakFo
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
           <label htmlFor="alamat_kec" className="form-label">Kecamatan</label>
-          <input
-            id="alamat_kec" name="alamat_kec" type="text"
+          <select
+            id="alamat_kec" name="alamat_kec"
             className="form-input"
-            defaultValue={initialData.alamat_kec || 'Komodo'}
+            value={kecamatan}
+            onChange={(e) => {
+              setKecamatan(e.target.value)
+              setDesa('')
+            }}
             required
             disabled={isPending}
-          />
+          >
+            <option value="" disabled>-- Pilih Kecamatan --</option>
+            {kecamatanList.map(kec => (
+              <option key={kec} value={kec}>{kec}</option>
+            ))}
+          </select>
         </div>
         
         <div>
           <label htmlFor="alamat_desa" className="form-label">Desa</label>
-          <input
-            id="alamat_desa" name="alamat_desa" type="text"
+          <select
+            id="id_desa" name="id_desa"
             className="form-input"
-            defaultValue={initialData.alamat_desa}
+            value={desa}
+            onChange={(e) => setDesa(e.target.value)}
             required
-            disabled={isPending}
-          />
+            disabled={isPending || !kecamatan}
+          >
+            <option value="" disabled>-- Pilih Desa --</option>
+            {desaList.map(d => (
+              <option key={d.id} value={d.id}>{d.nama_desa}</option>
+            ))}
+          </select>
         </div>
       </div>
 

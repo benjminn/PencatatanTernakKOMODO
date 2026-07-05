@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-sm px-4 py-8">
+      <div className="relative z-10 w-full max-w-md px-4 py-8">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 relative mb-3">

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { UserPlus, Users, Eye } from 'lucide-react'
+import { UserPlus, Users, Eye, Edit } from 'lucide-react'
 import DeletePeternakButton from '@/components/admin/DeletePeternakButton'
 import PeternakFilterBar from '@/components/admin/PeternakFilterBar'
 import Pagination from '@/components/ui/Pagination'
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Data Peternak' }
 export default async function AdminPeternakPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; desa?: string; page?: string; sortField?: string; sortOrder?: string }>
+  searchParams: Promise<{ search?: string; desa?: string; page?: string; sortField?: string; sortOrder?: string; limit?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -25,7 +25,7 @@ export default async function AdminPeternakPage({
 
   const params = await searchParams
   const currentPage = parseInt(params.page || '1', 10)
-  const itemsPerPage = 15
+  const itemsPerPage = parseInt(params.limit || '15', 10)
 
   let query = supabase
     .from('pemilik')
@@ -124,7 +124,10 @@ export default async function AdminPeternakPage({
                   <td className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link href={`/admin/peternak/${p.id}`} className="btn btn-ghost btn-sm">
-                        <Eye size={13} /> Detail Profil
+                        <Eye size={13} /> Detail
+                      </Link>
+                      <Link href={`/admin/peternak/${p.id}/edit`} className="btn btn-ghost btn-sm text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50">
+                        <Edit size={13} /> Edit
                       </Link>
                       <DeletePeternakButton peternakId={p.id} namaPeternak={p.nama_lengkap} />
                     </div>

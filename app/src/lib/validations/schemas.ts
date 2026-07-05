@@ -28,8 +28,7 @@ export const registerSchema = z
     nama_lengkap: z.string().min(2, 'Nama minimal 2 karakter').max(255),
     password: z.string().min(6, 'Password minimal 6 karakter'),
     confirm_password: z.string(),
-    alamat_kec: z.string().min(1, 'Pilih kecamatan'),
-    alamat_desa: z.string().min(1, 'Pilih desa'),
+    id_desa: z.string().min(1, 'Pilih desa'),
     alamat_detail: z.string().min(5, 'Isi detail alamat (RT/RW/Kampung)'),
   })
   .refine((data) => data.password === data.confirm_password, {
@@ -108,8 +107,7 @@ export const updateTernakSchema = z.object({
 
 export const profileSchema = z.object({
   nama_lengkap: z.string().min(2, 'Nama minimal 2 karakter').max(255),
-  alamat_kec: z.string().min(1, 'Pilih kecamatan'),
-  alamat_desa: z.string().min(1, 'Pilih desa'),
+  id_desa: z.string().min(1, 'Pilih desa'),
   alamat_detail: z.string().min(5, 'Isi detail alamat (RT/RW/Kampung)'),
 })
 

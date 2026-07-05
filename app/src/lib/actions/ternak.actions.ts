@@ -193,7 +193,7 @@ export async function updateTernak(id: string, formData: FormData) {
 }
 
 // ──────────────────────────────────────────────
-// HAPUS TERNAK (Admin only)
+// HAPUS TERNAK (Admin & Owner)
 // ──────────────────────────────────────────────
 export async function hapusTernak(id: string) {
   const supabase = await createClient()

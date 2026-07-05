@@ -24,11 +24,16 @@ export default async function TambahTernakPage() {
     .eq('is_active', true)
     .order('nama_jenis')
 
-  const { data: pemilikList } = await supabase
+  const { data: rawPemilikList } = await supabase
     .from('pemilik')
-    .select('*')
+    .select('*, master_desa(nama_desa)')
     .eq('role', 'peternak')
     .order('nama_lengkap')
+    
+  const pemilikList = (rawPemilikList ?? []).map(p => ({
+    ...p,
+    alamat_desa: p.master_desa?.nama_desa || '...'
+  }))
 
   return (
     <div className={`${isAdmin ? 'max-w-7xl' : 'max-w-4xl'} pb-8 w-full`}>

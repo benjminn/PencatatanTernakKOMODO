@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import Link from 'next/link'
 import { register } from '@/lib/actions/auth.actions'
-import { KECAMATAN_LIST, getDesaByKecamatan } from '@/lib/wilayah'
+import { getWilayahData } from '@/lib/actions/wilayah.actions'
 import { Eye, EyeOff, UserPlus, Loader2 } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -12,8 +12,18 @@ export default function RegisterPage() {
   const [kecamatan, setKecamatan] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  
+  const [kecamatanList, setKecamatanList] = useState<string[]>([])
+  const [wilayahData, setWilayahData] = useState<Record<string, {id: string, nama_desa: string}[]>>({})
 
-  const desaList = getDesaByKecamatan(kecamatan)
+  useEffect(() => {
+    getWilayahData().then(res => {
+      setKecamatanList(res.kecamatanList)
+      setWilayahData(res.wilayahData)
+    })
+  }, [])
+
+  const desaList = wilayahData[kecamatan] || []
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -101,11 +111,9 @@ export default function RegisterPage() {
             value={kecamatan}
             onChange={(e) => setKecamatan(e.target.value)}
           >
-            <option value="">Pilih kecamatan...</option>
-            {KECAMATAN_LIST.map((kec) => (
-              <option key={kec} value={kec}>
-                {kec}
-              </option>
+            <option value="" disabled>Pilih Kecamatan</option>
+            {kecamatanList.map((kec) => (
+              <option key={kec} value={kec}>{kec}</option>
             ))}
           </select>
         </div>
@@ -116,8 +124,8 @@ export default function RegisterPage() {
             Desa <span style={{ color: 'var(--color-mati)' }}>*</span>
           </label>
           <select
-            id="alamat_desa"
-            name="alamat_desa"
+            id="id_desa"
+            name="id_desa"
             className="form-input"
             required
             disabled={!kecamatan || isPending}
@@ -126,8 +134,8 @@ export default function RegisterPage() {
               {kecamatan ? 'Pilih desa...' : 'Pilih kecamatan dulu'}
             </option>
             {desaList.map((desa) => (
-              <option key={desa} value={desa}>
-                {desa}
+              <option key={desa.id} value={desa.id}>
+                {desa.nama_desa}
               </option>
             ))}
           </select>

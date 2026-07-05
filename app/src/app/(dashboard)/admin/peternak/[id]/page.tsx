@@ -23,7 +23,7 @@ export default async function AdminPeternakDetailPage({
   if (!me || (me.role !== 'admin' && me.role !== 'superadmin')) redirect('/dashboard')
 
   const { data: peternak } = await supabase
-    .from('pemilik').select('*').eq('id', id).single()
+    .from('pemilik').select('*, master_desa(nama_desa, kecamatan)').eq('id', id).single()
 
   if (!peternak) {
     return (
@@ -69,7 +69,7 @@ export default async function AdminPeternakDetailPage({
               </div>
               <div className="flex items-center gap-2 mt-3 text-sm text-gray-600">
                 <MapPin size={16} className="text-gray-400" />
-                <span>Desa {peternak.alamat_desa}, Kec. {peternak.alamat_kec}</span>
+                <span>Desa {peternak.master_desa?.nama_desa || '...'}, Kec. {peternak.master_desa?.kecamatan || '...'}</span>
               </div>
               <p className="mt-1 text-sm text-gray-500 italic max-w-md">{peternak.alamat_detail}</p>
             </div>

@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   Menu, X, LayoutDashboard, List, PlusCircle, Users, Tag,
   LogOut, ShieldCheck, UserCircle, ShieldAlert, ChevronRight,
+  BarChart3, MapPin
 } from 'lucide-react'
 import { logout } from '@/lib/actions/auth.actions'
 import type { Pemilik } from '@/types/database.types'
@@ -25,6 +26,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/ternak': 'Kelola Ternak',
   '/profil': 'Profil Saya',
   '/admin/kelola-admin': 'Kelola Admin',
+  '/admin/statistik': 'Statistik',
+  '/admin/lokasi': 'Kelola Lokasi',
 }
 
 const NAV_CONFIGS = {
@@ -45,8 +48,10 @@ const NAV_CONFIGS = {
       items: [
         { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
-        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
         { href: '/admin/ternak', label: 'Kelola Ternak', icon: List },
+        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+        { href: '/admin/lokasi', label: 'Kelola Lokasi', icon: MapPin },
+        { href: '/admin/statistik', label: 'Statistik', icon: BarChart3 },
       ]
     },
     {
@@ -63,10 +68,12 @@ const NAV_CONFIGS = {
       group: 'Panel Super Admin',
       items: [
         { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/admin/kelola-admin', label: 'Kelola Admin', icon: ShieldAlert },
         { href: '/admin/peternak', label: 'Data Peternak', icon: Users },
-        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
         { href: '/admin/ternak', label: 'Kelola Ternak', icon: List },
+        { href: '/admin/jenis-ternak', label: 'Jenis Ternak', icon: Tag },
+        { href: '/admin/lokasi', label: 'Kelola Lokasi', icon: MapPin },
+        { href: '/admin/statistik', label: 'Statistik', icon: BarChart3 },
+        { href: '/admin/kelola-admin', label: 'Kelola Admin', icon: ShieldAlert },
       ]
     },
     {

@@ -16,6 +16,9 @@ interface SearchParams {
   jenis?: string
   status?: string
   page?: string
+  sortField?: string
+  sortOrder?: string
+  limit?: string
 }
 
 export default async function TernakPage({
@@ -33,7 +36,7 @@ export default async function TernakPage({
 
   const params = await searchParams
   const currentPage = parseInt(params.page || '1', 10)
-  const itemsPerPage = 15
+  const itemsPerPage = parseInt(params.limit || '15', 10)
 
   let query = supabase.from('v_ternak_lengkap').select('*', { count: 'exact' })
   
@@ -54,9 +57,14 @@ export default async function TernakPage({
     query = query.eq('status', params.status as StatusTernak)
   }
 
+  // Handle Sorting
+  const sortField = params.sortField || 'created_at'
+  const sortOrder = params.sortOrder || 'desc'
+  const ascending = sortOrder === 'asc'
+
   // Add pagination
   query = query
-    .order('created_at', { ascending: false })
+    .order(sortField, { ascending })
     .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
 
   const { data: ternakList, count } = await query
@@ -92,7 +100,7 @@ export default async function TernakPage({
 
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-        <TernakTable data={ternakList ?? []} isAdmin={false} />
+        <TernakTable data={ternakList ?? []} isAdmin={false} currentPage={currentPage} itemsPerPage={itemsPerPage} />
         <Pagination currentPage={currentPage} totalPages={totalPages} />
       </div>
     </div>

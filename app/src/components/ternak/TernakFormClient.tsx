@@ -34,7 +34,7 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  
+
   const [selectedJenis, setSelectedJenis] = useState<JenisTernak | null>(
     initialData ? jenisList.find((j) => j.id === initialData.id_jenis) ?? null : null
   )
@@ -50,8 +50,8 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
     const formData = new FormData(e.currentTarget)
 
     startTransition(async () => {
-      let result = mode === 'tambah' 
-        ? await tambahTernak(formData) 
+      let result = mode === 'tambah'
+        ? await tambahTernak(formData)
         : await updateTernak(initialData!.id, formData)
 
       if (result?.error) {
@@ -71,7 +71,7 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
           {error}
         </div>
       )}
-      
+
       {adminIdPemilik && <input type="hidden" name="id_pemilik" value={adminIdPemilik} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
@@ -88,10 +88,10 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
               Identitas Penanda <span className="text-red-500">*</span>
             </label>
             <div className="flex flex-col sm:flex-row rounded-lg overflow-hidden border border-gray-300 focus-within:ring-2 focus-within:ring-green-500/20 focus-within:border-green-500 transition-all bg-white">
-              <select 
-                name="jenis_penanda" 
-                className="py-2.5 px-3 bg-gray-50 text-sm border-0 border-b sm:border-b-0 sm:border-r border-gray-300 focus:outline-none focus:ring-0 w-full sm:w-[150px] shrink-0 font-medium text-gray-700" 
-                required 
+              <select
+                name="jenis_penanda"
+                className="py-2.5 px-3 bg-gray-50 text-sm border-0 border-b sm:border-b-0 sm:border-r border-gray-300 focus:outline-none focus:ring-0 w-full sm:w-[150px] shrink-0 font-medium text-gray-700"
+                required
                 disabled={isPending}
                 defaultValue={initialData?.jenis_penanda ?? 'Eartag'}
               >
@@ -103,9 +103,9 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
                 <option value="Lainnya">Lainnya</option>
               </select>
               <input
-                name="identitas_penanda" 
+                name="identitas_penanda"
                 type="text"
-                placeholder="Kode / Warna (opsional)"
+                placeholder="Kode / Warna (Contoh: GM-001/ Telinga Kanan/ Merah) (opsional)"
                 className="py-2.5 px-3 w-full text-sm border-0 focus:outline-none focus:ring-0 flex-1 bg-transparent"
                 disabled={isPending}
                 defaultValue={initialData?.identitas_penanda ?? ''}
@@ -156,7 +156,7 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
                       if (val === 'Pejantan') setJenisKelamin('Jantan')
                     }}
                     disabled={isPending}
-                    className="sr-only" 
+                    className="sr-only"
                   />
                   {f}
                 </label>
@@ -182,7 +182,7 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
                       checked={jenisKelamin === opsi}
                       onChange={() => setJenisKelamin(opsi)}
                       disabled={mode === 'edit' || isPending}
-                      className="sr-only" 
+                      className="sr-only"
                     />
                     {opsi === 'Jantan' && <Mars size={18} className="text-blue-500 opacity-80" />}
                     {opsi === 'Betina' && <Venus size={18} className="text-pink-500 opacity-80" />}
