@@ -49,10 +49,13 @@ export default async function AdminPeternakPage({
     .order(sortField, { ascending })
     .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
 
-  const { data: peternak, count } = await query
+  // Run queries in parallel
+  const [{ data: peternak, count }, { data: ternakCounts }] = await Promise.all([
+    query,
+    supabase.from('ternak').select('id_pemilik'),
+  ])
   const totalPages = count ? Math.ceil(count / itemsPerPage) : 1
 
-  const { data: ternakCounts } = await supabase.from('ternak').select('id_pemilik')
   const countMap: Record<string, number> = {}
   ternakCounts?.forEach((t) => { countMap[t.id_pemilik] = (countMap[t.id_pemilik] || 0) + 1 })
 

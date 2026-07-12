@@ -51,6 +51,10 @@ export default function PeternakOverviewList({ pemilikList, ternakList }: Petern
     }
   })
 
+  const DISPLAY_LIMIT = 8
+  const displayedPeternak = peternakMap.slice(0, DISPLAY_LIMIT)
+  const hasMore = peternakMap.length > DISPLAY_LIMIT
+
   return (
     <div className="space-y-4">
       {peternakMap.length === 0 ? (
@@ -58,7 +62,7 @@ export default function PeternakOverviewList({ pemilikList, ternakList }: Petern
           Belum ada data peternak.
         </div>
       ) : (
-        peternakMap.map((p) => {
+        displayedPeternak.map((p) => {
           const isExpanded = expandedId === p.id
           return (
             <div key={p.id} className={`bg-white rounded-2xl border transition-all ${isExpanded ? 'border-blue-300 shadow-md' : 'border-gray-200 hover:border-blue-200 shadow-sm'}`}>
@@ -159,6 +163,15 @@ export default function PeternakOverviewList({ pemilikList, ternakList }: Petern
             </div>
           )
         })
+      )}
+      
+      {hasMore && (
+        <div className="mt-6 text-center">
+          <Link href="/admin/peternak" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-blue-600 font-semibold rounded-xl transition-all shadow-sm">
+            <span>Lihat Semua {peternakMap.length} Peternak</span>
+            <ExternalLink size={16} />
+          </Link>
+        </div>
       )}
     </div>
   )

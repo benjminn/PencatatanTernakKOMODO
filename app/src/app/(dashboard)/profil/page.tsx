@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ProfileForm from '@/components/profile/ProfileForm'
-import { ArrowLeft, User, Hash, MapPin, Calendar } from 'lucide-react'
+import ChangePasswordForm from '@/components/profile/ChangePasswordForm'
+import { ArrowLeft, User, Hash, MapPin, Calendar, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
 import type { Metadata } from 'next'
@@ -22,7 +23,7 @@ export default async function ProfilPage() {
   if (!pemilik) redirect('/login')
 
   return (
-    <div className="max-w-2xl space-y-6 pb-8">
+    <div className="max-w-5xl space-y-6 pb-8">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/dashboard" className="btn btn-ghost btn-sm">
@@ -34,9 +35,9 @@ export default async function ProfilPage() {
         </div>
       </div>
 
-      {/* Info Card */}
+      {/* Info Card - full width */}
       <div className="card">
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold bg-green-100 text-green-800 shrink-0">
             {pemilik.nama_lengkap.charAt(0).toUpperCase()}
           </div>
@@ -60,13 +61,26 @@ export default async function ProfilPage() {
         </div>
       </div>
 
-      {/* Edit Form */}
-      <div className="card">
-        <h3 className="font-bold text-base text-gray-900 mb-4">
-          ✏️ Edit Profil
-        </h3>
-        <ProfileForm pemilik={pemilik} />
+      {/* 2-column layout: Edit Profil | Ubah Password */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Edit Form - kiri */}
+        <div className="card">
+          <h3 className="font-bold text-base text-gray-900 mb-4">
+            ✏️ Edit Profil
+          </h3>
+          <ProfileForm pemilik={pemilik} />
+        </div>
+
+        {/* Change Password - kanan */}
+        <div className="card">
+          <h3 className="font-bold text-base text-gray-900 mb-1 flex items-center gap-2">
+            <Lock size={18} className="text-gray-600" /> Ubah Password
+          </h3>
+          <p className="text-xs text-gray-500 mb-4">Masukkan password lama Anda untuk memverifikasi, lalu masukkan password baru.</p>
+          <ChangePasswordForm />
+        </div>
       </div>
     </div>
   )
 }
+
