@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, User, MapPin, Edit, Printer } from 'lucide-react'
 import TernakTable from '@/components/ternak/TernakTable'
+import ResetPasswordButton from '@/components/admin/ResetPasswordButton'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Detail Peternak' }
@@ -76,6 +77,7 @@ export default async function AdminPeternakDetailPage({
           </div>
 
           <div className="flex flex-wrap gap-2 shrink-0">
+            <ResetPasswordButton userId={peternak.id} userName={peternak.nama_lengkap} />
             <Link href={`/kartu-ternak?nik=${peternak.nik}`} className="btn btn-ghost border border-gray-200">
               <Printer size={16} /> Cetak Kartu
             </Link>
