@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { useCallback } from 'react'
+import { WILAYAH_DATA } from '@/lib/wilayah'
 
 interface JenisItem {
   id: number
@@ -85,8 +86,9 @@ export default function TernakFilterBar({ isAdmin, jenisList, currentParams }: T
               onChange={(e) => updateParams('desa', e.target.value)}
             >
               <option value="">Semua Desa</option>
-              <option value="Golo Mori">Golo Mori</option>
-              <option value="Warloka">Warloka</option>
+              {Object.values(WILAYAH_DATA).flat().map((desa) => (
+                <option key={desa} value={desa}>{desa}</option>
+              ))}
             </select>
           )}
 

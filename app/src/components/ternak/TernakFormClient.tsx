@@ -6,6 +6,7 @@ import { tambahTernak, updateTernak } from '@/lib/actions/ternak.actions'
 import { parseTanggalLahirToUmur } from '@/lib/validations/schemas'
 import type { JenisTernak, StatusTernak } from '@/types/database.types'
 import { Loader2, Save, Heart, XCircle, DollarSign, Mars, Venus, Dna, Info } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 interface TernakFormClientProps {
   jenisList: JenisTernak[]
@@ -56,7 +57,9 @@ export default function TernakFormClient({ jenisList, mode, initialData, adminId
 
       if (result?.error) {
         setError(result.error)
+        toast.error(result.error)
       } else {
+        toast.success(mode === 'tambah' ? 'Ternak berhasil ditambahkan!' : 'Data ternak berhasil diperbarui!')
         router.push('/ternak')
       }
     })

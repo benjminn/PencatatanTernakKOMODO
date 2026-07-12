@@ -6,6 +6,7 @@ import AdminCharts from '@/components/dashboard/AdminCharts'
 import PeternakOverviewList from '@/components/admin/PeternakOverviewList'
 import type { Metadata } from 'next'
 import { formatDateShort } from '@/lib/utils'
+import { WILAYAH_DATA } from '@/lib/wilayah'
 
 export const metadata: Metadata = { title: 'Dashboard Admin' }
 
@@ -18,36 +19,38 @@ export default async function AdminDashboardPage() {
     .from('pemilik').select('*').eq('id', user.id).single()
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) redirect('/dashboard')
 
-  // Fetch Pemilik List (Peternak)
-  const { data: rawPeternakList } = await supabase
-    .from('pemilik').select('*, master_desa(nama_desa)').eq('role', 'peternak')
-    
+  // Run all queries in parallel for maximum speed
+  const [
+    { data: rawPeternakList },
+    { count: totalAdmin },
+    { data: ternakListLengkap },
+    { data: statistikDesa },
+  ] = await Promise.all([
+    supabase.from('pemilik').select('*, master_desa(nama_desa)').eq('role', 'peternak'),
+    supabase.from('pemilik').select('*', { count: 'exact', head: true }).in('role', ['admin', 'superadmin']),
+    supabase.from('v_ternak_lengkap').select('*'),
+    supabase.from('v_statistik_desa').select('*'),
+  ])
+
   const peternakList = rawPeternakList?.map(p => ({
     ...p,
     alamat_desa: p.master_desa?.nama_desa || '...'
   })) || []
-    
-  // Fetch Admin Count
-  const { count: totalAdmin } = await supabase
-    .from('pemilik').select('*', { count: 'exact', head: true }).in('role', ['admin', 'superadmin'])
 
-  // Fetch All Ternak
-  const { data: ternakListLengkap } = await supabase
-    .from('v_ternak_lengkap').select('*')
-    
   const totalTernak = ternakListLengkap?.length || 0
   const totalHidup = ternakListLengkap?.filter(t => t.status === 'hidup').length || 0
   const totalMati = ternakListLengkap?.filter(t => t.status === 'mati').length || 0
   const totalDijual = ternakListLengkap?.filter(t => t.status === 'dijual').length || 0
 
   // Statistik Desa
-  const { data: statistikDesa } = await supabase.from('v_statistik_desa').select('*')
-  const goloMoriTotal = statistikDesa
-    ?.filter((s) => s.alamat_desa === 'Golo Mori')
-    .reduce((acc, s) => acc + (s.total || 0), 0) ?? 0
-  const warlokaTotal = statistikDesa
-    ?.filter((s) => s.alamat_desa === 'Warloka')
-    .reduce((acc, s) => acc + (s.total || 0), 0) ?? 0
+  const daftarDesa = Object.values(WILAYAH_DATA).flat()
+  
+  const sebaranDesaData = daftarDesa.map(desa => {
+    const total = statistikDesa
+      ?.filter((s) => s.alamat_desa === desa)
+      .reduce((acc, s) => acc + (s.total || 0), 0) ?? 0
+    return { desa, total }
+  })
 
   // Chart Data
   const jenisCounts: Record<string, number> = {}
@@ -127,10 +130,7 @@ export default async function AdminDashboardPage() {
           <section>
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Sebaran Desa</h2>
             <div className="space-y-3">
-              {[
-                { desa: 'Golo Mori', total: goloMoriTotal },
-                { desa: 'Warloka', total: warlokaTotal },
-              ].map(({ desa, total }) => {
+              {sebaranDesaData.map(({ desa, total }) => {
                 const percentage = totalTernak > 0 ? Math.round((total / totalTernak) * 100) : 0
                 return (
                   <div key={desa} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-2 relative overflow-hidden group">

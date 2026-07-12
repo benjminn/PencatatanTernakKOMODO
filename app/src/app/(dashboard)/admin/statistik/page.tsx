@@ -19,15 +19,11 @@ export default async function AdminStatistikPage() {
   // We use select('*') without pagination because we need the full dataset for charts.
   // In a very large scale application (100k+ rows), this should be aggregated in SQL view.
   // But for this scale, client-side aggregation after fetching is totally fine and interactive.
-  const { data: ternakData } = await supabase
-    .from('v_ternak_lengkap')
-    .select('*')
-
-  // Fetch total count of peternak
-  const { count: peternakCount } = await supabase
-    .from('pemilik')
-    .select('*', { count: 'exact', head: true })
-    .eq('role', 'peternak')
+  // Run queries in parallel
+  const [{ data: ternakData }, { count: peternakCount }] = await Promise.all([
+    supabase.from('v_ternak_lengkap').select('*'),
+    supabase.from('pemilik').select('*', { count: 'exact', head: true }).eq('role', 'peternak'),
+  ])
 
   return (
     <div className="w-full pb-8">

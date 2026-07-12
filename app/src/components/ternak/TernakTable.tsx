@@ -10,6 +10,7 @@ import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import SortableHeader from '@/components/ui/SortableHeader'
+import toast from 'react-hot-toast'
 
 interface TernakTableProps {
   data: TernakLengkap[]
@@ -39,7 +40,12 @@ export default function TernakTable({
   const handleDeleteConfirm = () => {
     if (!deleteId) return
     startTransition(async () => {
-      await hapusTernak(deleteId)
+      const result = await hapusTernak(deleteId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Data ternak berhasil dihapus!')
+      }
       setDeleteId(null)
     })
   }
