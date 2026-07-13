@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server'
 import { profileSchema, getFirstZodError } from '@/lib/validations/schemas'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database.types'
-import { nikToEmail } from '@/lib/utils'
 
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient()
@@ -76,7 +75,7 @@ export async function changePassword(formData: FormData) {
     { auth: { persistSession: false, autoRefreshToken: false } }
   )
 
-  const email = nikToEmail(pemilik.nik)
+  const email = `${pemilik.nik}@pencatatanternak.local`
   const { error: signInError } = await authClient.auth.signInWithPassword({
     email,
     password: currentPassword,
