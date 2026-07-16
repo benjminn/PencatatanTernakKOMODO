@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { register } from '@/lib/actions/auth.actions'
 import { getWilayahData } from '@/lib/actions/wilayah.actions'
@@ -25,13 +26,20 @@ export default function RegisterPage() {
 
   const desaList = wilayahData[kecamatan] || []
 
+  const router = useRouter()
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await register(formData)
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+      } else if (result?.success) {
+        await new Promise(r => setTimeout(r, 100))
+        router.push('/dashboard')
+      }
     })
   }
 
