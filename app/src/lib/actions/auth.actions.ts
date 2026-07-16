@@ -46,8 +46,8 @@ async function supabaseCheckNikExists(nik: string) {
 // ──────────────────────────────────────────────
 export async function login(formData: FormData) {
   const rawData = {
-    nik: formData.get('nik') as string,
-    password: formData.get('password') as string,
+    nik: (formData.get('nik') as string || '').trim(),
+    password: (formData.get('password') as string || '').trim(),
   }
 
   const parsed = loginSchema.safeParse(rawData)
@@ -69,7 +69,9 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  // Return success instead of server-side redirect.
+  // The client will handle the redirect after cookies are settled.
+  return { success: true }
 }
 
 // ──────────────────────────────────────────────
@@ -127,7 +129,7 @@ export async function register(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  return { success: true }
 }
 
 // ──────────────────────────────────────────────

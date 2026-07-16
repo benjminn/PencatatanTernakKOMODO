@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { login } from '@/lib/actions/auth.actions'
 import { Eye, EyeOff, LogIn, Loader2, MessageCircle, X, PhoneCall } from 'lucide-react'
@@ -72,6 +73,7 @@ function LupaPasswordModal({ onClose }: { onClose: () => void }) {
 }
 
 export default function LoginPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -83,7 +85,14 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await login(formData)
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+      } else if (result?.success) {
+        // Small delay ensures auth cookie is fully set by the browser
+        // before navigating — prevents race condition on slower devices
+        await new Promise(r => setTimeout(r, 100))
+        router.push('/dashboard')
+      }
     })
   }
 
